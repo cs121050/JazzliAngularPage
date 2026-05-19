@@ -1,9 +1,9 @@
-import { Component, Inject, PLATFORM_ID, OnInit, OnDestroy, ElementRef, HostListener } from '@angular/core';
+import { Component, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { NavigationService } from '../../services/navigation.service';
-import { Subscription } from 'rxjs';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-top-bar',
@@ -16,7 +16,7 @@ import { Subscription } from 'rxjs';
         <div class="left-group">
           <button
             class="menu-button"
-            *ngIf="isMobile"
+            *ngIf="(isMobile$ | async) === true"
             (click)="toggleMobileMenu()"
             aria-label="Open menu"
           >
@@ -32,11 +32,10 @@ import { Subscription } from 'rxjs';
         </div>
 
         <!-- Desktop navigation (visible on non-mobile) -->
-        <nav class="desktop-nav" *ngIf="!isMobile">
+        <nav class="desktop-nav" *ngIf="(isMobile$ | async) === false">
           <a routerLink="/download" routerLinkActive="active">Download</a>
           <a routerLink="/shop" routerLinkActive="active">Shop</a>
           <a routerLink="/about" routerLinkActive="active">About</a>
-          <!-- Login/Signup link removed from desktop nav -->
         </nav>
 
         <!-- Right group: auth section (always on right) -->
@@ -48,22 +47,22 @@ import { Subscription } from 'rxjs';
             <div #userMenuContainer class="user-menu-container">
               <div 
                 class="user-menu" 
-                [class.user-menu-mobile]="isMobile" 
-                [class.user-menu-desktop]="!isMobile" 
+                [class.user-menu-mobile]="(isMobile$ | async) === true" 
+                [class.user-menu-desktop]="(isMobile$ | async) === false" 
                 (click)="toggleDropdown($event)"
               >
                 <img 
                   [src]="authService.currentUser()?.photoURL || 'assets/default-avatar.png'" 
                   alt="User avatar" 
                   class="user-avatar" 
-                  [class.user-avatar-mobile]="isMobile"
+                  [class.user-avatar-mobile]="(isMobile$ | async) === true"
                 >
-                <span *ngIf="!isMobile" class="user-email">{{ authService.currentUser()?.email }}</span>
-                <svg *ngIf="!isMobile" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="dropdown-arrow">
+                <span *ngIf="(isMobile$ | async) === false" class="user-email">{{ authService.currentUser()?.email }}</span>
+                <svg *ngIf="(isMobile$ | async) === false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="dropdown-arrow">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
               </div>
-              <div class="dropdown-menu" [class.dropdown-menu-mobile]="isMobile" *ngIf="dropdownOpen">
+              <div class="dropdown-menu" [class.dropdown-menu-mobile]="(isMobile$ | async) === true" *ngIf="dropdownOpen">
                 <button class="dropdown-item" (click)="logout()">Logout</button>
               </div>
             </div>
@@ -260,32 +259,22 @@ import { Subscription } from 'rxjs';
     }
 `]
 })
-export class TopBarComponent implements OnInit, OnDestroy {
-  isMobile = false;
+export class TopBarComponent {
+  isMobile$: Observable<boolean>;
   dropdownOpen = false;
-  private subscription: Subscription | null = null;
 
   constructor(
     public authService: AuthService,
     private navigationService: NavigationService,
     private elementRef: ElementRef
-  ) {}
-
-  ngOnInit() {
-    this.subscription = this.navigationService.isMobile$.subscribe(
-      isMobile => this.isMobile = isMobile
-    );
-  }
-
-  ngOnDestroy() {
-    this.subscription?.unsubscribe();
+  ) {
+    this.isMobile$ = this.navigationService.isMobile$;
   }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
     const userMenuContainer = this.elementRef.nativeElement.querySelector('.user-menu-container');
-    
     if (userMenuContainer && !userMenuContainer.contains(target)) {
       this.dropdownOpen = false;
     }
