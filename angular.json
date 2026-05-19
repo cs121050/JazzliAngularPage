@@ -33,7 +33,7 @@
                 "localhost",
                 "127.0.0.1",
                 "healthcheck.railway.app",
-                "your-app-name.up.railway.app"]
+                "jazzliangularpage-production.up.railway.app"]
               },
             "ssr": {
               "entry": "src/server.ts"
