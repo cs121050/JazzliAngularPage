@@ -260,27 +260,24 @@ import { Subscription } from 'rxjs';
     }
 
     /* Responsive breakpoints */
-    @media (max-width: 599px) {
-      .desktop-nav {
-        display: none;
-      }
-      .right-group {
-        display: block;
-      }
+  @media (max-width: 599px) {
+    .desktop-nav {
+      display: none;
     }
+    .menu-button {
+      display: flex !important;  /* override any inherited display */
+    }
+  }
 
-    @media (min-width: 600px) {
-      .menu-button {
-        display: none;
-      }
-      .left-group {
-        flex: 0 0 auto;
-      }
-      .desktop-nav {
-        display: flex;
-      }
+  @media (min-width: 600px) {
+    .menu-button {
+      display: none;
     }
-  `]
+    .desktop-nav {
+      display: flex;
+    }
+  }
+`]
 })
 export class TopBarComponent implements OnInit, OnDestroy {
   isMobile = false;
