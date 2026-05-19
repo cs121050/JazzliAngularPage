@@ -1,4 +1,4 @@
-import { Component, Inject, PLATFORM_ID, OnInit, OnDestroy } from '@angular/core';
+import { Component, Inject, PLATFORM_ID, OnInit, OnDestroy, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -35,33 +35,38 @@ import { Subscription } from 'rxjs';
         <nav class="desktop-nav" *ngIf="!isMobile">
           <a routerLink="/download" routerLinkActive="active">Download</a>
           <a routerLink="/shop" routerLinkActive="active">Shop</a>
-          <a routerLink="/about" routerLinkActive="active">About Us</a>
-          <ng-container *ngIf="!authService.isLoggedIn(); else loggedInDesktop">
-            <a routerLink="/login" routerLinkActive="active">Login / Signup</a>
-          </ng-container>
-          <ng-template #loggedInDesktop>
-            <div class="user-info-desktop">
-              <img [src]="authService.currentUser()?.photoURL || 'assets/default-avatar.png'"
-                   alt="User avatar" class="user-avatar">
-              <span class="user-email">{{ authService.currentUser()?.email }}</span>
-              <button class="logout-button" (click)="logout()">Logout</button>
-            </div>
-          </ng-template>
+          <a routerLink="/about" routerLinkActive="active">About</a>
+          <!-- Login/Signup link removed from desktop nav -->
         </nav>
 
         <!-- Right group: auth section (always on right) -->
         <div class="right-group">
-          <ng-container *ngIf="!authService.isLoggedIn(); else loggedInMobile">
+          <ng-container *ngIf="!authService.isLoggedIn(); else userMenu">
             <button class="login-button" (click)="navigateToLogin()">Login</button>
           </ng-container>
-          <ng-template #loggedInMobile>
-            <button class="logout-button-mobile" (click)="logout()" aria-label="Logout">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-            </button>
+          <ng-template #userMenu>
+            <div #userMenuContainer class="user-menu-container">
+              <div 
+                class="user-menu" 
+                [class.user-menu-mobile]="isMobile" 
+                [class.user-menu-desktop]="!isMobile" 
+                (click)="toggleDropdown($event)"
+              >
+                <img 
+                  [src]="authService.currentUser()?.photoURL || 'assets/default-avatar.png'" 
+                  alt="User avatar" 
+                  class="user-avatar" 
+                  [class.user-avatar-mobile]="isMobile"
+                >
+                <span *ngIf="!isMobile" class="user-email">{{ authService.currentUser()?.email }}</span>
+                <svg *ngIf="!isMobile" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="dropdown-arrow">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+              <div class="dropdown-menu" [class.dropdown-menu-mobile]="isMobile" *ngIf="dropdownOpen">
+                <button class="dropdown-item" (click)="logout()">Logout</button>
+              </div>
+            </div>
           </ng-template>
         </div>
       </div>
@@ -69,29 +74,31 @@ import { Subscription } from 'rxjs';
   `,
   styles: [`
     .top-bar {
-    background: #123456;
-    position: sticky;
-    top: 0;
-    width: 100%;
-    height: 49px;     
-    display: flex;     
-    margin: 0;
-    padding: 0;
-    align-items: center;    /* vertically center children */
-    z-index: 100;
-  }
+      background: #123456;
+      position: sticky;
+      top: 0;
+      width: 100%;
+      height: 49px;
+      display: flex;
+      margin: 0;
+      padding: 0;
+      align-items: center;
+      z-index: 100;
+    }
 
     .top-bar-content {
       display: flex;
       align-items: center;
-      justify-content: flex-start;   /* changed */
+      justify-content: flex-start;
       padding: 0.75rem 1rem;
       width: 100%;
       margin: 0;
+      gap: 2rem;
     }
 
     .right-group {
-      margin-left: auto;             /* new */
+      margin-left: auto;
+      position: relative;
     }
 
     /* Left group contains menu button (mobile) and logo */
@@ -120,6 +127,7 @@ import { Subscription } from 'rxjs';
       color: white;
       text-decoration: none;
       font-size: 1rem;
+      font-family: "Inter Tight", sans-serif;
       transition: opacity 0.3s ease;
     }
 
@@ -129,10 +137,39 @@ import { Subscription } from 'rxjs';
       text-decoration: underline;
     }
 
-    .user-info-desktop {
+    /* User menu container */
+    .user-menu-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    .user-menu {
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .user-menu-desktop {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.5rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+    }
+
+    .user-menu-desktop:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .user-menu-mobile {
+      padding: 0.25rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .user-menu-mobile:hover {
+      background: rgba(255, 255, 255, 0.1);
     }
 
     .user-avatar {
@@ -142,23 +179,56 @@ import { Subscription } from 'rxjs';
       object-fit: cover;
     }
 
+    .user-avatar-mobile {
+      width: 32px;
+      height: 32px;
+    }
+
     .user-email {
       color: white;
       font-size: 0.875rem;
+      font-family: "Inter Tight", sans-serif;
     }
 
-    .logout-button {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      padding: 0.25rem 0.75rem;
-      border-radius: 0.25rem;
+    .dropdown-arrow {
+      stroke: white;
+    }
+
+    /* Dropdown menu */
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 0.5rem;
+      background: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      min-width: 120px;
+      z-index: 150;
+      overflow: hidden;
+    }
+
+    .dropdown-menu-mobile {
+      right: 0;
+      left: auto;
+    }
+
+    .dropdown-item {
+      display: block;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      background: none;
+      border: none;
+      color: #333;
       cursor: pointer;
-      font-size: 0.75rem;
+      font-size: 0.875rem;
+      font-family: "Inter Tight", sans-serif;
+      transition: background 0.2s ease;
     }
 
-    .logout-button:hover {
-      background: rgba(255, 255, 255, 0.3);
+    .dropdown-item:hover {
+      background: #f5f5f5;
     }
 
     /* Mobile elements */
@@ -181,20 +251,16 @@ import { Subscription } from 'rxjs';
       border-radius: 0.25rem;
       cursor: pointer;
       font-size: 0.875rem;
+      font-family: "Inter Tight", sans-serif;
+      transition: background 0.2s ease;
     }
 
-    .logout-button-mobile {
-      background: none;
-      border: none;
-      color: white;
-      cursor: pointer;
-      padding: 0;
-      display: flex;
-      align-items: center;
+    .login-button:hover {
+      background: rgba(255, 255, 255, 0.3);
     }
 
     /* Responsive breakpoints */
-    @media (max-width: 768px) {
+    @media (max-width: 599px) {
       .desktop-nav {
         display: none;
       }
@@ -203,11 +269,10 @@ import { Subscription } from 'rxjs';
       }
     }
 
-    @media (min-width: 769px) {
+    @media (min-width: 600px) {
       .menu-button {
         display: none;
       }
-      /* On desktop, the left group only has logo */
       .left-group {
         flex: 0 0 auto;
       }
@@ -219,11 +284,13 @@ import { Subscription } from 'rxjs';
 })
 export class TopBarComponent implements OnInit, OnDestroy {
   isMobile = false;
+  dropdownOpen = false;
   private subscription: Subscription | null = null;
 
   constructor(
     public authService: AuthService,
-    private navigationService: NavigationService
+    private navigationService: NavigationService,
+    private elementRef: ElementRef
   ) {}
 
   ngOnInit() {
@@ -236,6 +303,21 @@ export class TopBarComponent implements OnInit, OnDestroy {
     this.subscription?.unsubscribe();
   }
 
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    const userMenuContainer = this.elementRef.nativeElement.querySelector('.user-menu-container');
+    
+    if (userMenuContainer && !userMenuContainer.contains(target)) {
+      this.dropdownOpen = false;
+    }
+  }
+
+  toggleDropdown(event: Event) {
+    event.stopPropagation();
+    this.dropdownOpen = !this.dropdownOpen;
+  }
+
   toggleMobileMenu() {
     window.dispatchEvent(new CustomEvent('toggleMenu'));
   }
@@ -245,6 +327,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
   }
 
   logout() {
+    this.dropdownOpen = false;
     this.authService.logout();
   }
 }
