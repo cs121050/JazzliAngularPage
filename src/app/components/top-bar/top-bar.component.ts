@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { NavigationService } from '../../services/navigation.service';
 import { Observable } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-top-bar',
@@ -12,14 +13,9 @@ import { Observable } from 'rxjs';
   template: `
     <div class="top-bar">
       <div class="top-bar-content">
-        <!-- Left group: menu button (mobile only) + logo -->
+        <!-- Left group -->
         <div class="left-group">
-          <button
-            class="menu-button"
-            *ngIf="(isMobile$ | async) === true"
-            (click)="toggleMobileMenu()"
-            aria-label="Open menu"
-          >
+          <button class="menu-button" *ngIf="(isMobile$ | async) === true" (click)="toggleMobileMenu()">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="3" y1="6" x2="21" y2="6"></line>
               <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -31,16 +27,16 @@ import { Observable } from 'rxjs';
           </div>
         </div>
 
-        <!-- Desktop navigation (visible on non-mobile) -->
+        <!-- Desktop navigation -->
         <nav class="desktop-nav" *ngIf="(isMobile$ | async) === false">
           <a routerLink="/download" routerLinkActive="active">Download</a>
           <a routerLink="/shop" routerLinkActive="active">Shop</a>
           <a routerLink="/about" routerLinkActive="active">About</a>
         </nav>
 
-        <!-- Right group: auth section (always on right) -->
+        <!-- Right group: auth section -->
         <div class="right-group">
-          <ng-container *ngIf="!authService.isLoggedIn(); else userMenu">
+          <ng-container *ngIf="(authService.isLoggedIn$ | async) === false; else userMenu">
             <button class="login-button" (click)="navigateToLogin()">Login</button>
           </ng-container>
           <ng-template #userMenu>
@@ -52,17 +48,18 @@ import { Observable } from 'rxjs';
                 (click)="toggleDropdown($event)"
               >
                 <img 
-                  [src]="authService.currentUser()?.photoURL || 'assets/default-avatar.png'" 
+                  [src]="authService.currentUser?.photoURL || 'assets/default-avatar.png'" 
                   alt="User avatar" 
                   class="user-avatar" 
                   [class.user-avatar-mobile]="(isMobile$ | async) === true"
                 >
-                <span *ngIf="(isMobile$ | async) === false" class="user-email">{{ authService.currentUser()?.email }}</span>
+                <span *ngIf="(isMobile$ | async) === false" class="user-email">{{ authService.currentUser?.email }}</span>
                 <svg *ngIf="(isMobile$ | async) === false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="dropdown-arrow">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
               </div>
               <div class="dropdown-menu" [class.dropdown-menu-mobile]="(isMobile$ | async) === true" *ngIf="dropdownOpen">
+                <button class="dropdown-item" (click)="goToChangePassword()">Change Password</button>
                 <button class="dropdown-item" (click)="logout()">Logout</button>
               </div>
             </div>
@@ -266,9 +263,15 @@ export class TopBarComponent {
   constructor(
     public authService: AuthService,
     private navigationService: NavigationService,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    private router: Router
   ) {
     this.isMobile$ = this.navigationService.isMobile$;
+  }
+
+  goToChangePassword() {
+    this.dropdownOpen = false;
+    this.router.navigate(['/change-password']);
   }
 
   @HostListener('document:click', ['$event'])
@@ -296,5 +299,9 @@ export class TopBarComponent {
   logout() {
     this.dropdownOpen = false;
     this.authService.logout();
-  }
+    // Optionally redirect to home or login page
+    this.router.navigate(['/']);
+    // Also dispatch custom event if needed
+    window.dispatchEvent(new CustomEvent('navigateTo', { detail: 'home' }));
+}
 }

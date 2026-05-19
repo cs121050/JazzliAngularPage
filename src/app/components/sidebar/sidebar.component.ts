@@ -136,7 +136,7 @@ import { Subscription } from 'rxjs';
 export class SidebarComponent implements OnDestroy {
   isOpen = signal(false);
   isMobile = false;
-  private subscription: Subscription | null = null;
+  private subscriptions: Subscription[] = [];
 
   menuItems = [
     { id: 'download', label: 'Download' },
@@ -149,17 +149,27 @@ export class SidebarComponent implements OnDestroy {
     private navigationService: NavigationService,
     @Inject(PLATFORM_ID) private platformId: object
   ) {
-    this.subscription = this.navigationService.isMobile$.subscribe(
-      isMobile => {
+    // Subscribe to isMobile changes
+    this.subscriptions.push(
+      this.navigationService.isMobile$.subscribe(isMobile => {
         this.isMobile = isMobile;
         this.updateMenuItems();
-      }
+      })
     );
 
-    effect(() => {
-      this.updateMenuItems();
-    });
+    // Subscribe to auth state changes
+    this.subscriptions.push(
+      this.authService.isLoggedIn$.subscribe(() => {
+        this.updateMenuItems();
+      })
+    );
 
+    // Optional: also listen to currentUser$ changes if you need more granular updates
+    // this.subscriptions.push(
+    //   this.authService.currentUser$.subscribe(() => this.updateMenuItems())
+    // );
+
+    // Listen for toggleMenu custom event
     if (typeof window !== 'undefined') {
       window.addEventListener('toggleMenu', () => {
         this.isOpen.update(v => !v);
@@ -168,7 +178,7 @@ export class SidebarComponent implements OnDestroy {
   }
 
   ngOnDestroy() {
-    this.subscription?.unsubscribe();
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   private updateMenuItems() {
@@ -178,7 +188,7 @@ export class SidebarComponent implements OnDestroy {
       { id: 'about', label: 'About' },
     ];
 
-    if (this.authService.isLoggedIn()) {
+    if (this.authService.isLoggedIn) {
       if (this.isMobile) {
         this.menuItems = [
           ...baseItems,
@@ -194,7 +204,6 @@ export class SidebarComponent implements OnDestroy {
         ];
       }
     } else {
-      // Login/Signup item removed as requested
       this.menuItems = [...baseItems];
     }
   }

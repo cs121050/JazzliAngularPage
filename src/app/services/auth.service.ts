@@ -1,33 +1,56 @@
-import { Injectable, signal } from '@angular/core';
-import { Auth, onAuthStateChanged, signOut, User } from '@angular/fire/auth';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { 
+  Auth, 
+  signOut, 
+  User, 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup
+} from '@angular/fire/auth';
+import { authState } from '@angular/fire/auth';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-  private currentUserSubject = new BehaviorSubject<User | null>(null);
-  private isLoggedInSubject = new BehaviorSubject<boolean>(false);
+  private auth = inject(Auth);
   
-  currentUser$ = this.currentUserSubject.asObservable();
-  isLoggedIn$ = this.isLoggedInSubject.asObservable();
+  // Use AngularFire's authState observable (already zone-aware)
+  currentUser$: Observable<User | null> = authState(this.auth);
+  isLoggedIn$: Observable<boolean> = authState(this.auth).pipe(map(user => !!user));
 
-  constructor(private auth: Auth) {
-    onAuthStateChanged(this.auth, (user) => {
-      this.currentUserSubject.next(user);
-      this.isLoggedInSubject.next(!!user);
-    });
+  // Optional: synchronous getters for convenience
+  get currentUser(): User | null {
+    return this.auth.currentUser;
   }
 
-  isLoggedIn(): boolean {
-    return this.isLoggedInSubject.value;
+  get isLoggedIn(): boolean {
+    return !!this.auth.currentUser;
   }
 
-  currentUser(): User | null {
-    return this.currentUserSubject.value;
+  async signInWithEmail(email: string, password: string): Promise<User> {
+    const result = await signInWithEmailAndPassword(this.auth, email, password);
+    return result.user;
   }
 
-  logout() {
-    signOut(this.auth);
+  async signUpWithEmail(email: string, password: string): Promise<User> {
+    const result = await createUserWithEmailAndPassword(this.auth, email, password);
+    return result.user;
+  }
+
+  async sendPasswordResetEmail(email: string): Promise<void> {
+    await sendPasswordResetEmail(this.auth, email);
+  }
+
+  async signInWithGoogle(): Promise<User> {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(this.auth, provider);
+    return result.user;
+  }
+
+  logout(): Promise<void> {
+    return signOut(this.auth);
   }
 }
