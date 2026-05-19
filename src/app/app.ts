@@ -1,12 +1,30 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, Inject, PLATFORM_ID, afterNextRender } from '@angular/core';
+import { Router, RouterOutlet } from '@angular/router';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-root',
+  standalone: true,
   imports: [RouterOutlet],
-  templateUrl: './app.html',
-  styleUrls: ['./app.css']
+  template: `<router-outlet></router-outlet>`,
+  styles: [`
+    :host {
+      display: block;
+      height: 100%;
+    }
+  `]
 })
 export class App {
-  protected readonly title = signal('JazzliAngularPage');
+  constructor(
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: object
+  ) {
+    afterNextRender(() => {
+      if (isPlatformBrowser(this.platformId)) {
+        window.addEventListener('navigateTo', ((event: any) => {
+          this.router.navigate([event.detail]);
+        }) as EventListener);
+      }
+    });
+  }
 }
