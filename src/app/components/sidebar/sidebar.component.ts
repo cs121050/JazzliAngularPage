@@ -43,7 +43,7 @@ import { Subscription } from 'rxjs';
       right: 0;
       bottom: 0;
       background: rgba(0, 0, 0, 0.5);
-      z-index: 200; /* Higher than top bar (100) to overlay */
+      z-index: 200;
       opacity: 0;
       visibility: hidden;
       transition: all 0.3s ease;
@@ -61,7 +61,7 @@ import { Subscription } from 'rxjs';
       width: 250px;
       height: 100vh;
       background: white;
-      z-index: 201; /* Above overlay */
+      z-index: 201;
       transform: translateX(-100%);
       transition: transform 0.3s ease;
       display: flex;
@@ -73,12 +73,11 @@ import { Subscription } from 'rxjs';
       transform: translateX(0);
     }
 
-    /* Header row – same height as top bar, matching color */
     .sidebar-header {
       background: #123456;
       padding: 0.75rem 1rem;
       display: flex;
-      height: 25px;          
+      height: 25px;
       align-items: center;
       gap: 0.5rem;
     }
@@ -140,10 +139,9 @@ export class SidebarComponent implements OnDestroy {
   private subscription: Subscription | null = null;
 
   menuItems = [
-    { id: 'download', label: 'Download Jazzli' },
+    { id: 'download', label: 'Download' },
     { id: 'shop', label: 'Shop' },
-    { id: 'about', label: 'About Us' },
-    { id: 'login', label: 'Login / Signup' },
+    { id: 'about', label: 'About' },
   ];
 
   constructor(
@@ -159,9 +157,7 @@ export class SidebarComponent implements OnDestroy {
     );
 
     effect(() => {
-      if (this.authService.isLoggedIn()) {
-        this.updateMenuItems();
-      }
+      this.updateMenuItems();
     });
 
     if (typeof window !== 'undefined') {
@@ -177,9 +173,9 @@ export class SidebarComponent implements OnDestroy {
 
   private updateMenuItems() {
     const baseItems = [
-      { id: 'download', label: 'Download Jazzli' },
+      { id: 'download', label: 'Download' },
       { id: 'shop', label: 'Shop' },
-      { id: 'about', label: 'About Us' },
+      { id: 'about', label: 'About' },
     ];
 
     if (this.authService.isLoggedIn()) {
@@ -198,7 +194,8 @@ export class SidebarComponent implements OnDestroy {
         ];
       }
     } else {
-      this.menuItems = [...baseItems, { id: 'login', label: 'Login / Signup' }];
+      // Login/Signup item removed as requested
+      this.menuItems = [...baseItems];
     }
   }
 

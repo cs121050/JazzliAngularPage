@@ -15,7 +15,7 @@ export class NavigationService {
   ) {
     // Only set up the breakpoint observer if we're in a browser
     if (isPlatformBrowser(this.platformId)) {
-      this.isMobile$ = this.breakpointObserver.observe([Breakpoints.Handset])
+    this.isMobile$ = this.breakpointObserver.observe(['(max-width: 599px)'])
         .pipe(
           map(result => result.matches),
           shareReplay()
