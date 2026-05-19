@@ -12,12 +12,26 @@ import { Subscription } from 'rxjs';
   template: `
     <div class="top-bar">
       <div class="top-bar-content">
-        <!-- Logo -->
-        <div class="logo">
-          <a routerLink="/" class="logo-link">Jazzli</a>
+        <!-- Left group: menu button (mobile only) + logo -->
+        <div class="left-group">
+          <button
+            class="menu-button"
+            *ngIf="isMobile"
+            (click)="toggleMobileMenu()"
+            aria-label="Open menu"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <div class="logo">
+            <a routerLink="/" class="logo-link">Jazzli</a>
+          </div>
         </div>
 
-        <!-- Desktop Navigation (shown on non-mobile) -->
+        <!-- Desktop navigation (visible on non-mobile) -->
         <nav class="desktop-nav" *ngIf="!isMobile">
           <a routerLink="/download" routerLinkActive="active">Download</a>
           <a routerLink="/shop" routerLinkActive="active">Shop</a>
@@ -27,7 +41,7 @@ import { Subscription } from 'rxjs';
           </ng-container>
           <ng-template #loggedInDesktop>
             <div class="user-info-desktop">
-              <img [src]="authService.currentUser()?.photoURL || 'assets/default-avatar.png'" 
+              <img [src]="authService.currentUser()?.photoURL || 'assets/default-avatar.png'"
                    alt="User avatar" class="user-avatar">
               <span class="user-email">{{ authService.currentUser()?.email }}</span>
               <button class="logout-button" (click)="logout()">Logout</button>
@@ -35,21 +49,8 @@ import { Subscription } from 'rxjs';
           </ng-template>
         </nav>
 
-        <!-- Mobile Hamburger Button (shown only on mobile) -->
-        <button 
-          class="menu-button" 
-          *ngIf="isMobile"
-          (click)="toggleMobileMenu()"
-          aria-label="Open menu">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <line x1="3" y1="12" x2="21" y2="12"></line>
-            <line x1="3" y1="18" x2="21" y2="18"></line>
-          </svg>
-        </button>
-
-        <!-- Mobile Auth Section (shown only on mobile) -->
-        <div class="mobile-auth-section" *ngIf="isMobile">
+        <!-- Right group: auth section (always on right) -->
+        <div class="right-group">
           <ng-container *ngIf="!authService.isLoggedIn(); else loggedInMobile">
             <button class="login-button" (click)="navigateToLogin()">Login</button>
           </ng-container>
@@ -68,21 +69,36 @@ import { Subscription } from 'rxjs';
   `,
   styles: [`
     .top-bar {
-      background: linear-gradient(90deg, #F0060B 0%, #CC26D5 50%, #7702FF 100%);
-      padding: 0.75rem 1rem;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
+    background: #123456;
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: 49px;     
+    display: flex;     
+    margin: 0;
+    padding: 0;
+    align-items: center;    /* vertically center children */
+    z-index: 100;
+  }
 
     .top-bar-content {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      max-width: 1200px;
-      margin: 0 auto;
-      gap: 1rem;
+      justify-content: flex-start;   /* changed */
+      padding: 0.75rem 1rem;
+      width: 100%;
+      margin: 0;
+    }
+
+    .right-group {
+      margin-left: auto;             /* new */
+    }
+
+    /* Left group contains menu button (mobile) and logo */
+    .left-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     .logo-link {
@@ -93,12 +109,11 @@ import { Subscription } from 'rxjs';
       font-family: "Inter Tight", sans-serif;
     }
 
+    /* Desktop navigation */
     .desktop-nav {
       display: flex;
       align-items: center;
       gap: 1.5rem;
-      flex: 1;
-      justify-content: flex-end;
     }
 
     .desktop-nav a {
@@ -142,20 +157,20 @@ import { Subscription } from 'rxjs';
       font-size: 0.75rem;
     }
 
+    .logout-button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Mobile elements */
     .menu-button {
       background: none;
       border: none;
       color: white;
       cursor: pointer;
-      padding: 0.5rem;
+      padding: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-    }
-
-    .mobile-auth-section {
-      display: flex;
-      align-items: center;
     }
 
     .login-button {
@@ -173,30 +188,31 @@ import { Subscription } from 'rxjs';
       border: none;
       color: white;
       cursor: pointer;
-      padding: 0.5rem;
+      padding: 0;
       display: flex;
+      align-items: center;
     }
 
-    /* Responsive: hide desktop nav and show hamburger on mobile */
+    /* Responsive breakpoints */
     @media (max-width: 768px) {
       .desktop-nav {
-        display: none !important;
+        display: none;
       }
-      .menu-button {
-        display: flex;
+      .right-group {
+        display: block;
       }
     }
 
-    /* Ensure desktop nav is shown on larger screens even if Angular's *ngIf hides it (fallback) */
     @media (min-width: 769px) {
-      .desktop-nav {
-        display: flex !important;
-      }
       .menu-button {
-        display: none !important;
+        display: none;
       }
-      .mobile-auth-section {
-        display: none !important;
+      /* On desktop, the left group only has logo */
+      .left-group {
+        flex: 0 0 auto;
+      }
+      .desktop-nav {
+        display: flex;
       }
     }
   `]

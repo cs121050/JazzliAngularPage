@@ -1,1 +1,13 @@
 /* You can add global styles to this file, and also import other style files */
+/* Force remove all spacing from body and root containers */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Also ensure the root Angular element has no spacing */
+app-root {
+  display: block;
+  margin: 0;
+  padding: 0;
+}
