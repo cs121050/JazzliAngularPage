@@ -10,14 +10,19 @@ import { Subscription } from 'rxjs';
   imports: [CommonModule],
   template: `
     <div [class.sidebar-open]="isOpen()" class="sidebar-overlay" (click)="closeSidebar()">
-      <nav class="sidebar" (click)="$event.stopPropagation()">
-        <button class="close-button" (click)="closeSidebar()" aria-label="Close menu">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
+      <div class="sidebar" (click)="$event.stopPropagation()">
+        <!-- Header row with X and logo -->
+        <div class="sidebar-header">
+          <button class="close-button" (click)="closeSidebar()" aria-label="Close menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+          <div class="sidebar-logo">Jazzli</div>
+        </div>
 
+        <!-- Menu items list -->
         <ul class="menu-list">
           @for (item of menuItems; track item.id) {
             <li>
@@ -27,7 +32,7 @@ import { Subscription } from 'rxjs';
             </li>
           }
         </ul>
-      </nav>
+      </div>
     </div>
   `,
   styles: [`
@@ -38,7 +43,7 @@ import { Subscription } from 'rxjs';
       right: 0;
       bottom: 0;
       background: rgba(0, 0, 0, 0.5);
-      z-index: 99;
+      z-index: 200; /* Higher than top bar (100) to overlay */
       opacity: 0;
       visibility: hidden;
       transition: all 0.3s ease;
@@ -56,7 +61,7 @@ import { Subscription } from 'rxjs';
       width: 250px;
       height: 100vh;
       background: white;
-      z-index: 100;
+      z-index: 201; /* Above overlay */
       transform: translateX(-100%);
       transition: transform 0.3s ease;
       display: flex;
@@ -68,19 +73,32 @@ import { Subscription } from 'rxjs';
       transform: translateX(0);
     }
 
+    /* Header row – same height as top bar, matching color */
+    .sidebar-header {
+      background: #123456;
+      padding: 0.75rem 1rem;
+      display: flex;
+      height: 25px;          
+      align-items: center;
+      gap: 0.5rem;
+    }
+
     .close-button {
       background: none;
       border: none;
-      padding: 1rem;
       cursor: pointer;
-      color: #333;
+      color: white;
       display: flex;
       align-items: center;
-      justify-content: flex-end;
+      justify-content: center;
+      padding: 0;
     }
 
-    .close-button:hover {
-      opacity: 0.7;
+    .sidebar-logo {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: white;
+      font-family: "Inter Tight", sans-serif;
     }
 
     .menu-list {
@@ -133,11 +151,9 @@ export class SidebarComponent implements OnDestroy {
     private navigationService: NavigationService,
     @Inject(PLATFORM_ID) private platformId: object
   ) {
-    // Subscribe to mobile detection to conditionally show/hide sidebar items
     this.subscription = this.navigationService.isMobile$.subscribe(
       isMobile => {
         this.isMobile = isMobile;
-        // Update menu items based on login status and device type
         this.updateMenuItems();
       }
     );
@@ -167,7 +183,6 @@ export class SidebarComponent implements OnDestroy {
     ];
 
     if (this.authService.isLoggedIn()) {
-      // For mobile, show logout button in sidebar
       if (this.isMobile) {
         this.menuItems = [
           ...baseItems,
@@ -176,7 +191,6 @@ export class SidebarComponent implements OnDestroy {
           { id: 'logout', label: 'Logout' },
         ];
       } else {
-        // For desktop, logout is handled by top bar, so only show profile/settings
         this.menuItems = [
           ...baseItems,
           { id: 'profile', label: 'Profile' },
@@ -184,7 +198,6 @@ export class SidebarComponent implements OnDestroy {
         ];
       }
     } else {
-      // Not logged in - always show login option
       this.menuItems = [...baseItems, { id: 'login', label: 'Login / Signup' }];
     }
   }
