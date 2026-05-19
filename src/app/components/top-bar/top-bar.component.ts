@@ -258,25 +258,6 @@ import { Subscription } from 'rxjs';
     .login-button:hover {
       background: rgba(255, 255, 255, 0.3);
     }
-
-    /* Responsive breakpoints */
-  @media (max-width: 599px) {
-    .desktop-nav {
-      display: none;
-    }
-    .menu-button {
-      display: flex !important;  /* override any inherited display */
-    }
-  }
-
-  @media (min-width: 600px) {
-    .menu-button {
-      display: none;
-    }
-    .desktop-nav {
-      display: flex;
-    }
-  }
 `]
 })
 export class TopBarComponent implements OnInit, OnDestroy {
