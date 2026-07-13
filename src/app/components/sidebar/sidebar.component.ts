@@ -193,4 +193,9 @@ export class SidebarComponent implements OnDestroy {
     this.isOpen.set(false);
   }
 
+onMenuItemClick(item: any) {
+  window.dispatchEvent(new CustomEvent('navigateTo', { detail: item.id }));
+  this.closeSidebar();
+}
+
 }

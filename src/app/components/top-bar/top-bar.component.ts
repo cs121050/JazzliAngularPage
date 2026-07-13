@@ -341,9 +341,13 @@ export class TopBarComponent {
     this.router.navigate(['/admin']); // You'll need to create this route later
   }
 
-  async logout() {
+  goToUserPanel() {
+  this.dropdownOpen = false;
+  this.router.navigate(['/user-panel']);
+  }
+  
+  goToSettings() {
     this.dropdownOpen = false;
-    await this.authService.logout();
-    this.router.navigate(['/']);
+    this.router.navigate(['/settings']);
   }
 }
