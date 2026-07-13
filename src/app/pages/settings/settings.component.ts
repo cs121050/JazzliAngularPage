@@ -1,33 +1,104 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';   // <-- import Router properly
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { LayoutComponent } from '../../components/layout/layout.component';
+import { AuthService } from '../../services/auth.service';
+import { Auth, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, RouterModule, LayoutComponent],
+  imports: [CommonModule, FormsModule, RouterModule, LayoutComponent],
   template: `
     <app-layout>
       <div class="settings">
         <h1>Settings</h1>
         <p class="subtitle">Manage your account preferences</p>
 
-        <!-- Tabs (dummy) -->
+        <!-- Tabs -->
         <div class="tabs">
           <button class="tab active">Authentication</button>
           <button class="tab">Preferences</button>
           <button class="tab">Notifications</button>
         </div>
 
-        <!-- Authentication tab content -->
+        <!-- Authentication tab -->
         <div class="tab-content">
           <h2>Change Password</h2>
-          <p>Click below to update your password.</p>
-          <button class="btn-primary" (click)="goToChangePassword()">
-            Change Password
-          </button>
-          <p class="note">(This will redirect to a dedicated change‑password page for now.)</p>
+
+          <!-- Password change form -->
+          <form (ngSubmit)="changePassword()" #passwordForm="ngForm" class="password-form">
+            <!-- Current password -->
+            <div class="form-group">
+              <label for="currentPassword">Current Password</label>
+              <input
+                type="password"
+                id="currentPassword"
+                name="currentPassword"
+                [(ngModel)]="currentPassword"
+                required
+                #currentPw="ngModel"
+                class="form-control"
+                placeholder="Enter your current password"
+              />
+              <div *ngIf="currentPw.invalid && currentPw.touched" class="error">
+                Current password is required.
+              </div>
+            </div>
+
+            <!-- New password -->
+            <div class="form-group">
+              <label for="newPassword">New Password</label>
+              <input
+                type="password"
+                id="newPassword"
+                name="newPassword"
+                [(ngModel)]="newPassword"
+                required
+                minlength="6"
+                #newPw="ngModel"
+                class="form-control"
+                placeholder="Enter new password (min. 6 characters)"
+              />
+              <div *ngIf="newPw.invalid && newPw.touched" class="error">
+                Password must be at least 6 characters.
+              </div>
+            </div>
+
+            <!-- Confirm password -->
+            <div class="form-group">
+              <label for="confirmPassword">Confirm New Password</label>
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                [(ngModel)]="confirmPassword"
+                required
+                #confirmPw="ngModel"
+                class="form-control"
+                placeholder="Confirm your new password"
+              />
+              <div *ngIf="confirmPw.invalid && confirmPw.touched" class="error">
+                Please confirm your password.
+              </div>
+              <div *ngIf="newPassword !== confirmPassword && confirmPw.touched" class="error">
+                Passwords do not match.
+              </div>
+            </div>
+
+            <!-- Submit and status -->
+            <button
+              type="submit"
+              class="btn-primary"
+              [disabled]="passwordForm.invalid || loading || newPassword !== confirmPassword"
+            >
+              {{ loading ? 'Updating...' : 'Update Password' }}
+            </button>
+
+            <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+            <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+          </form>
         </div>
       </div>
     </app-layout>
@@ -69,6 +140,34 @@ import { LayoutComponent } from '../../components/layout/layout.component';
     .tab-content {
       padding: 1rem 0;
     }
+
+    .password-form {
+      max-width: 400px;
+    }
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .form-group label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+    .form-control {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid #ddd;
+      border-radius: 0.25rem;
+      font-size: 1rem;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: #CC26D5;
+    }
+    .error {
+      color: #dc2626;
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+    }
     .btn-primary {
       background: linear-gradient(90deg, #F0060B, #CC26D5);
       color: white;
@@ -79,21 +178,93 @@ import { LayoutComponent } from '../../components/layout/layout.component';
       cursor: pointer;
       transition: opacity 0.2s;
     }
-    .btn-primary:hover {
+    .btn-primary:hover:not(:disabled) {
       opacity: 0.85;
     }
-    .note {
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .error-message {
       margin-top: 1rem;
-      color: #999;
-      font-style: italic;
-      font-size: 0.9rem;
+      padding: 0.75rem;
+      background: #fee2e2;
+      color: #dc2626;
+      border-radius: 0.25rem;
+    }
+    .success-message {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: #dcfce7;
+      color: #16a34a;
+      border-radius: 0.25rem;
     }
   `]
 })
 export class SettingsComponent {
-  constructor(private router: Router) {}   // <-- now properly typed
+  currentPassword = '';
+  newPassword = '';
+  confirmPassword = '';
+  loading = false;
+  errorMessage = '';
+  successMessage = '';
 
-  goToChangePassword() {
-    this.router.navigate(['/change-password']);
+  constructor(
+    private authService: AuthService,
+    private auth: Auth
+  ) {}
+
+  async changePassword() {
+    // Reset messages
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    // Validate
+    if (this.newPassword !== this.confirmPassword) {
+      this.errorMessage = 'Passwords do not match.';
+      return;
+    }
+    if (this.newPassword.length < 6) {
+      this.errorMessage = 'New password must be at least 6 characters.';
+      return;
+    }
+
+    this.loading = true;
+
+    try {
+      const user = this.auth.currentUser;
+      if (!user) {
+        throw new Error('No user logged in.');
+      }
+
+      // Re-authenticate with current password
+      const credential = EmailAuthProvider.credential(
+        user.email!,
+        this.currentPassword
+      );
+      await reauthenticateWithCredential(user, credential);
+
+      // Update password
+      await updatePassword(user, this.newPassword);
+
+      this.successMessage = 'Password updated successfully!';
+      this.currentPassword = '';
+      this.newPassword = '';
+      this.confirmPassword = '';
+    } catch (err: any) {
+      console.error('Password change error:', err);
+      // Map Firebase error codes to user-friendly messages
+      if (err.code === 'auth/wrong-password') {
+        this.errorMessage = 'Current password is incorrect.';
+      } else if (err.code === 'auth/requires-recent-login') {
+        this.errorMessage = 'Please log out and log in again before changing your password.';
+      } else if (err.code === 'auth/weak-password') {
+        this.errorMessage = 'New password is too weak. Choose a stronger one.';
+      } else {
+        this.errorMessage = err.message || 'Failed to change password. Please try again.';
+      }
+    } finally {
+      this.loading = false;
+    }
   }
 }
