@@ -5,6 +5,8 @@ import { ShopComponent } from './pages/shop/shop.component';
 import { AboutComponent } from './pages/about/about.component';
 import { ChangePasswordComponent } from './pages/change-password/change-password.component';
 import { AdminComponent } from './pages/admin/admin.component';
+import { UserPanelComponent } from './components/user-panel/user-panel.component';
+
 
 export const routes: Routes = [
   { path: '', redirectTo: 'download', pathMatch: 'full' },
@@ -13,6 +15,8 @@ export const routes: Routes = [
   { path: 'change-password', component: ChangePasswordComponent },
   { path: 'shop', component: ShopComponent },
   { path: 'about', component: AboutComponent },
+  { path: 'user-panel', component: UserPanelComponent },
+  { path: 'settings', component: SettingsComponent },
   { path: 'admin', component: AdminComponent },
   { path: '**', redirectTo: 'download' }
 ];

@@ -187,37 +187,10 @@ export class SidebarComponent implements OnDestroy {
       { id: 'shop', label: 'Shop' },
       { id: 'about', label: 'About' },
     ];
-
-    if (this.authService.isLoggedIn) {
-      if (this.isMobile) {
-        this.menuItems = [
-          ...baseItems,
-          { id: 'profile', label: 'Profile' },
-          { id: 'settings', label: 'Settings' },
-          { id: 'logout', label: 'Logout' },
-        ];
-      } else {
-        this.menuItems = [
-          ...baseItems,
-          { id: 'profile', label: 'Profile' },
-          { id: 'settings', label: 'Settings' },
-        ];
-      }
-    } else {
-      this.menuItems = [...baseItems];
-    }
   }
 
   closeSidebar() {
     this.isOpen.set(false);
   }
 
-  onMenuItemClick(item: any) {
-    if (item.id === 'logout') {
-      this.authService.logout();
-    } else {
-      window.dispatchEvent(new CustomEvent('navigateTo', { detail: item.id }));
-    }
-    this.closeSidebar();
-  }
 }

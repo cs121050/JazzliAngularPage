@@ -1,0 +1,17 @@
+.settings {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.settings h1 {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.settings .subtitle {
+  color: #666;
+  font-size: 1rem;
+  margin-bottom: 2rem;
+}
