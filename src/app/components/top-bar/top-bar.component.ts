@@ -50,7 +50,7 @@ import { map } from 'rxjs/operators';
                 (click)="toggleDropdown($event)"
               >
                 <img 
-                  [src]="(authService.currentUser$ | async)?.photoURL || (authService.currentUser$ | async)?.displayName? 'assets/default-avatar.png' : 'assets/default-avatar.png'"
+                  [src]="'assets/default-avatar.png'"
                   alt="User avatar" 
                   class="user-avatar" 
                   [class.user-avatar-mobile]="(isMobile$ | async) === true"
@@ -103,7 +103,23 @@ export class TopBarComponent {
     this.isMobile$ = this.navigationService.isMobile$;
   }
 
-  // ... existing methods ...
+  toggleMobileMenu() {
+    this.navigationService.toggleMobileMenu();
+  }
+
+  navigateToLogin() {
+    this.router.navigate(['/login']);
+  }
+
+  toggleDropdown(event: Event) {
+    event.stopPropagation();
+    this.dropdownOpen = !this.dropdownOpen;
+  }
+
+  @HostListener('document:click', ['$event'])
+  closeDropdown() {
+    this.dropdownOpen = false;
+  }
 
   goToChangePassword() {
     this.dropdownOpen = false;
@@ -115,5 +131,9 @@ export class TopBarComponent {
     this.router.navigate(['/admin']); // You'll need to create this route later
   }
 
-  // ... rest unchanged ...
+  async logout() {
+    this.dropdownOpen = false;
+    await this.authService.logout();
+    this.router.navigate(['/']);
+  }
 }
