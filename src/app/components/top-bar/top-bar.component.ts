@@ -120,11 +120,14 @@ export class TopBarComponent {
   this.dropdownOpen = false;
   this.router.navigate(['/user-panel']);
   }
-  
+
   goToSettings() {
     this.dropdownOpen = false;
     this.router.navigate(['/settings']);
   }
-        
-  // ... rest unchanged ...
+
+  logout() {
+  this.dropdownOpen = false;
+  this.authService.logout();
+  this.router.navigate(['/']); // or dispatch navigateTo event
 }
