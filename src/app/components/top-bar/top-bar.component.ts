@@ -116,7 +116,7 @@ export class TopBarComponent {
     this.dropdownOpen = !this.dropdownOpen;
   }
 
-  @HostListener('document:click', ['$event'])
+  @HostListener('document:click')
   closeDropdown() {
     this.dropdownOpen = false;
   }
