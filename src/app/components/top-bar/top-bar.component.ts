@@ -1,10 +1,12 @@
+// src/app/components/top-bar/top-bar.component.ts
 import { Component, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
+import { AuthService, AppUser } from '../../services/auth.service';
 import { NavigationService } from '../../services/navigation.service';
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-top-bar',
@@ -48,18 +50,27 @@ import { Router } from '@angular/router';
                 (click)="toggleDropdown($event)"
               >
                 <img 
-                  [src]="authService.currentUser?.photoURL || 'assets/default-avatar.png'" 
+                  [src]="(authService.currentUser$ | async)?.photoURL || (authService.currentUser$ | async)?.displayName? 'assets/default-avatar.png' : 'assets/default-avatar.png'"
                   alt="User avatar" 
                   class="user-avatar" 
                   [class.user-avatar-mobile]="(isMobile$ | async) === true"
                 >
-                <span *ngIf="(isMobile$ | async) === false" class="user-email">{{ authService.currentUser?.email }}</span>
+                <!-- Use Firebase user for email and photo, but we also display role -->
+                <span *ngIf="(isMobile$ | async) === false" class="user-email">
+                  {{ (authService.currentUser$ | async)?.email || (authService.currentUser$ | async)?.displayName }}
+                  <span *ngIf="(authService.currentUser$ | async) as appUser" class="user-role">
+                    ({{ appUser.role }})
+                  </span>
+                </span>
                 <svg *ngIf="(isMobile$ | async) === false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="dropdown-arrow">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
               </div>
+              <!-- Dropdown -->
               <div class="dropdown-menu" [class.dropdown-menu-mobile]="(isMobile$ | async) === true" *ngIf="dropdownOpen">
                 <button class="dropdown-item" (click)="goToChangePassword()">Change Password</button>
+                <!-- Admin panel only for admins -->
+                <button *ngIf="(authService.isAdmin$ | async)" class="dropdown-item" (click)="goToAdminPanel()">Admin Panel</button>
                 <button class="dropdown-item" (click)="logout()">Logout</button>
               </div>
             </div>
@@ -69,192 +80,15 @@ import { Router } from '@angular/router';
     </div>
   `,
   styles: [`
-    .top-bar {
-      background: #123456;
-      position: sticky;
-      top: 0;
-      width: 100%;
-      height: 49px;
-      display: flex;
-      margin: 0;
-      padding: 0;
-      align-items: center;
-      z-index: 100;
+    /* ... your existing styles ... */
+    /* Add small style for role */
+    .user-role {
+      font-size: 0.7rem;
+      opacity: 0.7;
+      margin-left: 4px;
+      text-transform: uppercase;
     }
-
-    .top-bar-content {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 0.75rem 1rem;
-      width: 100%;
-      margin: 0;
-      gap: 2rem;
-    }
-
-    .right-group {
-      margin-left: auto;
-      position: relative;
-    }
-
-    /* Left group contains menu button (mobile) and logo */
-    .left-group {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .logo-link {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: white;
-      text-decoration: none;
-      font-family: "Inter Tight", sans-serif;
-    }
-
-    /* Desktop navigation */
-    .desktop-nav {
-      display: flex;
-      align-items: center;
-      gap: 1.5rem;
-    }
-
-    .desktop-nav a {
-      color: white;
-      text-decoration: none;
-      font-size: 1rem;
-      font-family: "Inter Tight", sans-serif;
-      transition: opacity 0.3s ease;
-    }
-
-    .desktop-nav a:hover,
-    .desktop-nav a.active {
-      opacity: 0.8;
-      text-decoration: underline;
-    }
-
-    /* User menu container */
-    .user-menu-container {
-      position: relative;
-      display: inline-block;
-    }
-
-    .user-menu {
-      cursor: pointer;
-      transition: background 0.2s ease;
-    }
-
-    .user-menu-desktop {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.25rem 0.5rem;
-      border-radius: 0.25rem;
-    }
-
-    .user-menu-desktop:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    .user-menu-mobile {
-      padding: 0.25rem;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .user-menu-mobile:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    .user-avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-
-    .user-avatar-mobile {
-      width: 32px;
-      height: 32px;
-    }
-
-    .user-email {
-      color: white;
-      font-size: 0.875rem;
-      font-family: "Inter Tight", sans-serif;
-    }
-
-    .dropdown-arrow {
-      stroke: white;
-    }
-
-    /* Dropdown menu */
-    .dropdown-menu {
-      position: absolute;
-      top: 100%;
-      right: 0;
-      margin-top: 0.5rem;
-      background: white;
-      border-radius: 0.5rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      min-width: 120px;
-      z-index: 150;
-      overflow: hidden;
-    }
-
-    .dropdown-menu-mobile {
-      right: 0;
-      left: auto;
-    }
-
-    .dropdown-item {
-      display: block;
-      width: 100%;
-      padding: 0.75rem 1rem;
-      text-align: left;
-      background: none;
-      border: none;
-      color: #333;
-      cursor: pointer;
-      font-size: 0.875rem;
-      font-family: "Inter Tight", sans-serif;
-      transition: background 0.2s ease;
-    }
-
-    .dropdown-item:hover {
-      background: #f5f5f5;
-    }
-
-    /* Mobile elements */
-    .menu-button {
-      background: none;
-      border: none;
-      color: white;
-      cursor: pointer;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .login-button {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      padding: 0.5rem 1rem;
-      border-radius: 0.25rem;
-      cursor: pointer;
-      font-size: 0.875rem;
-      font-family: "Inter Tight", sans-serif;
-      transition: background 0.2s ease;
-    }
-
-    .login-button:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
-`]
+  `]
 })
 export class TopBarComponent {
   isMobile$: Observable<boolean>;
@@ -269,39 +103,17 @@ export class TopBarComponent {
     this.isMobile$ = this.navigationService.isMobile$;
   }
 
+  // ... existing methods ...
+
   goToChangePassword() {
     this.dropdownOpen = false;
     this.router.navigate(['/change-password']);
   }
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent) {
-    const target = event.target as HTMLElement;
-    const userMenuContainer = this.elementRef.nativeElement.querySelector('.user-menu-container');
-    if (userMenuContainer && !userMenuContainer.contains(target)) {
-      this.dropdownOpen = false;
-    }
-  }
-
-  toggleDropdown(event: Event) {
-    event.stopPropagation();
-    this.dropdownOpen = !this.dropdownOpen;
-  }
-
-  toggleMobileMenu() {
-    window.dispatchEvent(new CustomEvent('toggleMenu'));
-  }
-
-  navigateToLogin() {
-    window.dispatchEvent(new CustomEvent('navigateTo', { detail: 'login' }));
-  }
-
-  logout() {
+  goToAdminPanel() {
     this.dropdownOpen = false;
-    this.authService.logout();
-    // Optionally redirect to home or login page
-    this.router.navigate(['/']);
-    // Also dispatch custom event if needed
-    window.dispatchEvent(new CustomEvent('navigateTo', { detail: 'home' }));
-}
+    this.router.navigate(['/admin']); // You'll need to create this route later
+  }
+
+  // ... rest unchanged ...
 }

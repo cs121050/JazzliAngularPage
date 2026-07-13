@@ -1,5 +1,7 @@
+// src/environments/environment.prod.ts (production)
 export const environment = {
   production: true,
+  apiBaseUrl: 'https://springbootapijazzlibrary-production.up.railway.app/api',
   firebaseConfig: {
     apiKey: "AIzaSyCEMmzkzQpiISGhMMChVDnBpe-sVv6OAPM",
     authDomain: "jazzli-b75cc.firebaseapp.com",
