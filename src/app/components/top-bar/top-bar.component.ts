@@ -356,3 +356,5 @@ export class TopBarComponent {
   this.authService.logout();
   this.router.navigate(['/']); // or dispatch navigateTo event
 }
+
+}
