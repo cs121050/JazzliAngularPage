@@ -25,4 +25,10 @@ export class NavigationService {
       this.isMobile$ = new Observable(sub => sub.next(false));
     }
   }
+
+  toggleMobileMenu(): void {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('toggleMenu'));
+    }
+  }
 }
