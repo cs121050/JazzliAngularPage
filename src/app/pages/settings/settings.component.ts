@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';   // <-- import Router properly
 import { LayoutComponent } from '../../components/layout/layout.component';
 
 @Component({
@@ -91,7 +91,8 @@ import { LayoutComponent } from '../../components/layout/layout.component';
   `]
 })
 export class SettingsComponent {
-  constructor(private router: import('@angular/router').Router) {}
+  constructor(private router: Router) {}   // <-- now properly typed
+
   goToChangePassword() {
     this.router.navigate(['/change-password']);
   }
