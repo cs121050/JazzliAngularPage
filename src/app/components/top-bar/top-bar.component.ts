@@ -116,5 +116,15 @@ export class TopBarComponent {
     this.router.navigate(['/admin']); // You'll need to create this route later
   }
 
+  goToUserPanel() {
+  this.dropdownOpen = false;
+  this.router.navigate(['/user-panel']);
+  }
+  
+  goToSettings() {
+    this.dropdownOpen = false;
+    this.router.navigate(['/settings']);
+  }
+        
   // ... rest unchanged ...
 }
