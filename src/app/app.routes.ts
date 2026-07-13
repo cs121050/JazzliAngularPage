@@ -5,8 +5,8 @@ import { ShopComponent } from './pages/shop/shop.component';
 import { AboutComponent } from './pages/about/about.component';
 import { ChangePasswordComponent } from './pages/change-password/change-password.component';
 import { AdminComponent } from './pages/admin/admin.component';
-import { UserPanelComponent } from './components/user-panel/user-panel.component';
-import { SettingsComponent } from './components/settings/settings.component';
+import { UserPanelComponent } from './pages/user-panel/user-panel.component';
+import { SettingsComponent } from './pages/settings/settings.component';
 
 
 export const routes: Routes = [
