@@ -68,8 +68,9 @@ import { map } from 'rxjs/operators';
               </div>
               <!-- Dropdown -->
               <div class="dropdown-menu" [class.dropdown-menu-mobile]="(isMobile$ | async) === true" *ngIf="dropdownOpen">
-                <button class="dropdown-item" (click)="goToChangePassword()">Change Password</button>
-                <!-- Admin panel only for admins -->
+              <button class="dropdown-item" (click)="goToUserPanel()">User Panel</button>
+              <button class="dropdown-item" (click)="goToSettings()">Settings</button>  
+              <!-- Admin panel only for admins -->
                 <button *ngIf="(authService.isAdmin$ | async)" class="dropdown-item" (click)="goToAdminPanel()">Admin Panel</button>
                 <button class="dropdown-item" (click)="logout()">Logout</button>
               </div>

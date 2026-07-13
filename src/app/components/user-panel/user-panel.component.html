@@ -1,0 +1,115 @@
+<div class="user-panel-container">
+  <div class="panel-header">
+    <h1>User Panel</h1>
+    <p class="subtitle">Manage your account and change your password</p>
+  </div>
+
+  <div class="panel-content">
+    <!-- Success Message -->
+    <div *ngIf="successMessage" class="alert alert-success">
+      <span>{{ successMessage }}</span>
+      <button class="close-btn" (click)="clearMessages()">×</button>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="alert alert-error">
+      <span>{{ errorMessage }}</span>
+      <button class="close-btn" (click)="clearMessages()">×</button>
+    </div>
+
+    <!-- Change Password Form -->
+    <form [formGroup]="changePasswordForm" (ngSubmit)="onChangePassword()" class="change-password-form">
+      <h2>Change Password</h2>
+
+      <!-- Current Password -->
+      <div class="form-group">
+        <label for="currentPassword">Current Password</label>
+        <div class="password-input-group">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="currentPassword"
+            formControlName="currentPassword"
+            placeholder="Enter your current password"
+            class="form-control"
+          />
+          <button
+            type="button"
+            class="toggle-password-btn"
+            (click)="togglePasswordVisibility('current')"
+            title="Toggle password visibility"
+          >
+            {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+          </button>
+        </div>
+        <span *ngIf="changePasswordForm.get('currentPassword')?.hasError('required') && changePasswordForm.get('currentPassword')?.touched" class="error-text">
+          Current password is required
+        </span>
+      </div>
+
+      <!-- New Password -->
+      <div class="form-group">
+        <label for="newPassword">New Password</label>
+        <div class="password-input-group">
+          <input
+            [type]="showNewPassword ? 'text' : 'password'"
+            id="newPassword"
+            formControlName="newPassword"
+            placeholder="Enter your new password (min 8 characters)"
+            class="form-control"
+          />
+          <button
+            type="button"
+            class="toggle-password-btn"
+            (click)="togglePasswordVisibility('new')"
+            title="Toggle password visibility"
+          >
+            {{ showNewPassword ? '👁️' : '👁️‍🗨️' }}
+          </button>
+        </div>
+        <span *ngIf="changePasswordForm.get('newPassword')?.hasError('required') && changePasswordForm.get('newPassword')?.touched" class="error-text">
+          New password is required
+        </span>
+        <span *ngIf="changePasswordForm.get('newPassword')?.hasError('minlength') && changePasswordForm.get('newPassword')?.touched" class="error-text">
+          Password must be at least 8 characters
+        </span>
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <div class="password-input-group">
+          <input
+            [type]="showConfirmPassword ? 'text' : 'password'"
+            id="confirmPassword"
+            formControlName="confirmPassword"
+            placeholder="Confirm your new password"
+            class="form-control"
+          />
+          <button
+            type="button"
+            class="toggle-password-btn"
+            (click)="togglePasswordVisibility('confirm')"
+            title="Toggle password visibility"
+          >
+            {{ showConfirmPassword ? '👁️' : '👁️‍🗨️' }}
+          </button>
+        </div>
+        <span *ngIf="changePasswordForm.get('confirmPassword')?.hasError('required') && changePasswordForm.get('confirmPassword')?.touched" class="error-text">
+          Please confirm your password
+        </span>
+        <span *ngIf="changePasswordForm.hasError('passwordMismatch') && changePasswordForm.get('confirmPassword')?.touched" class="error-text">
+          Passwords do not match
+        </span>
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="submit-btn"
+        [disabled]="changePasswordForm.invalid || isLoading"
+      >
+        {{ isLoading ? 'Changing Password...' : 'Change Password' }}
+      </button>
+    </form>
+  </div>
+</div>
