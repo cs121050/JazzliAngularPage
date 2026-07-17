@@ -155,26 +155,15 @@ export class TopBarComponent implements OnInit {
     if (!user) return '';
 
     // You could also use user.photoURL if available (e.g., from Google)
-    // if (user.photoURL) return user.photoURL;
 
     const name = user.displayName || user.email || 'User';
     const color = stringToColor(name);
     return generateIdenticon(name, color, 200);
   }
 
-    navigateToLogin() {
-      this.router.navigate(['/login']);
-    }
-
-    toggleDropdown(event: Event) {
-      event.stopPropagation();
-      this.dropdownOpen = !this.dropdownOpen;
-    }
-
-    @HostListener('document:click')
-    closeDropdown() {
-      this.dropdownOpen = false;
-    }
+  toggleMobileMenu() {
+    this.navigationService.toggleMobileMenu();
+  }
 
   goToChangePassword() {
     this.dropdownOpen = false;
