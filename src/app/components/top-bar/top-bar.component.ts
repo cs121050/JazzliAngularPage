@@ -1,3 +1,4 @@
+// src/app/components/top-bar/top-bar.component.ts
 import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -6,7 +7,7 @@ import { NavigationService } from '../../services/navigation.service';
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 import { map } from 'rxjs/operators';
-import { generateIdenticon, stringToColor } from '../../utils/identicon'; // ← Import
+import { generateIdenticon, stringToColor } from '../../utils/identicon';
 
 @Component({
   selector: 'app-top-bar',
@@ -49,14 +50,14 @@ import { generateIdenticon, stringToColor } from '../../utils/identicon'; // ←
                 [class.user-menu-desktop]="(isMobile$ | async) === false" 
                 (click)="toggleDropdown($event)"
               >
-                <!-- ✅ FIXED: Use identicon as fallback -->
+                <!-- ✅ RESOLVED: Use identicon from feature branch -->
                 <img 
                   [src]="getUserAvatar()"
                   alt="User avatar" 
                   class="user-avatar" 
                   [class.user-avatar-mobile]="(isMobile$ | async) === true"
                 >
-                <!-- Use Firebase user for email and photo, but we also display role -->
+                <!-- ✅ RESOLVED: Show email on all screen sizes (from feature branch) -->
                 <span class="user-email">
                   {{ (authService.currentUser$ | async)?.email || (authService.currentUser$ | async)?.displayName }}
                   <span *ngIf="(authService.currentUser$ | async) as appUser" class="user-role">
@@ -82,17 +83,223 @@ import { generateIdenticon, stringToColor } from '../../utils/identicon'; // ←
     </div>
   `,
   styles: [`
+    /* ✅ RESOLVED: Combined styles from both branches */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      height: 64px;
+      background: #0f0f10;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      z-index: 1000;
+      box-sizing: border-box;
+    }
+
+    .top-bar-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+      gap: 16px;
+      box-sizing: border-box;
+    }
+
+    .left-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo-link {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #ffffff;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+    }
+
+    .desktop-nav {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+
+    .desktop-nav a {
+      color: rgba(255, 255, 255, 0.75);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      padding: 8px 0;
+      transition: color 0.2s ease;
+      position: relative;
+    }
+
+    .desktop-nav a:hover {
+      color: #ffffff;
+    }
+
+    .desktop-nav a.active {
+      color: #ffffff;
+    }
+
+    .desktop-nav a.active::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 2px;
+      background: #ffffff;
+      border-radius: 2px;
+    }
+
+    .right-group {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+    }
+
+    .user-menu-container {
+      position: relative;
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 24px;
+      transition: background 0.2s ease;
+    }
+
+    .user-menu:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .user-menu-mobile {
+      padding: 4px;
+    }
+
+    .user-menu-desktop {
+      padding: 6px 12px;
+    }
+
     .user-avatar {
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       object-fit: cover;
-      width: 36px;
-      height: 36px;
+      background: rgba(255, 255, 255, 0.1);
     }
+
+    .user-avatar-mobile {
+      width: 28px;
+      height: 28px;
+    }
+
+    .user-email {
+      display: flex;
+      align-items: center;
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 0.875rem;
+      max-width: 180px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     .user-role {
       font-size: 0.7rem;
       opacity: 0.7;
       margin-left: 4px;
       text-transform: uppercase;
+    }
+
+    .dropdown-arrow {
+      stroke: rgba(255, 255, 255, 0.7);
+      flex-shrink: 0;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: #1a1a1c;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      min-width: 200px;
+      z-index: 1100;
+      display: flex;
+      flex-direction: column;
+      padding: 6px;
+      overflow: hidden;
+    }
+
+    .dropdown-menu-mobile {
+      right: 0;
+      left: auto;
+    }
+
+    .dropdown-item {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 0.9rem;
+      padding: 10px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .dropdown-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    .menu-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: none;
+      border: none;
+      color: #ffffff;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.2s ease;
+    }
+
+    .menu-button:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .login-button {
+      background: #ffffff;
+      color: #0f0f10;
+      border: 1px solid #ffffff;
+      border-radius: 20px;
+      padding: 8px 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    }
+
+    .login-button:hover {
+      background: transparent;
+      color: #ffffff;
+      transform: translateY(-1px);
     }
   `]
 })
@@ -109,9 +316,7 @@ export class TopBarComponent implements OnInit {
     this.isMobile$ = this.navigationService.isMobile$;
   }
 
-  ngOnInit() {
-    // Any init logic if needed
-  }
+  ngOnInit() {}
 
   /**
    * Returns the user's avatar URL:
@@ -122,11 +327,10 @@ export class TopBarComponent implements OnInit {
     const user = this.authService.currentUser;
     if (!user) return '';
 
-    // If user has a real photo (from Google), use it
-    if (user.displayName) {
-      // Note: Firebase User object has photoURL directly, 
-      // but your AppUser interface may not include it.
-      // You can access it via this.authService.auth.currentUser?.photoURL
+    // Check for Google photo first
+    const firebaseUser = (this.authService as any).auth?.currentUser;
+    if (firebaseUser?.photoURL) {
+      return firebaseUser.photoURL;
     }
 
     // Generate identicon as fallback
@@ -135,7 +339,24 @@ export class TopBarComponent implements OnInit {
     return generateIdenticon(name, color, 200);
   }
 
-  // ... rest of your methods
+  toggleMobileMenu() {
+    this.navigationService.toggleMobileMenu();
+  }
+
+  navigateToLogin() {
+    this.router.navigate(['/login']);
+  }
+
+  toggleDropdown(event: Event) {
+    event.stopPropagation();
+    this.dropdownOpen = !this.dropdownOpen;
+  }
+
+  @HostListener('document:click')
+  closeDropdown() {
+    this.dropdownOpen = false;
+  }
+
   goToChangePassword() {
     this.dropdownOpen = false;
     this.router.navigate(['/change-password']);
