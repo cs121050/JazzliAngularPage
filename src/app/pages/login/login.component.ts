@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { LayoutComponent } from '../../components/layout/layout.component';
 import { AuthService } from '../../services/auth.service';
 import { NgZone } from '@angular/core';
+import { generateIdenticon, stringToColor } from '../../utils/identicon';
 
 @Component({
   selector: 'app-login',
@@ -337,13 +338,19 @@ export class LoginComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   private ngZone = inject(NgZone);
-
+    
+  identiconUrl: string = '';
   email = '';
   password = '';
   isSignUp = false;
   loading = false;
   errorMessage = '';
   passwordVisible = false;
+
+  generateUserIdenticon(name: string): string {
+    const color = stringToColor(name); // Auto-generate color from name
+    return generateIdenticon(name, color, 200);
+  }
 
   async submit() {
   if (!this.email || !this.password) {
