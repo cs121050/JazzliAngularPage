@@ -6,7 +6,7 @@ import { NavigationService } from '../../services/navigation.service';
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 import { map } from 'rxjs/operators';
-import { generateIdenticon, stringToColor } from '../../utils/identicon'; // ← Import
+import { generateIdenticon, stringToColor } from '../../utils/identicon';
 
 @Component({
   selector: 'app-top-bar',
@@ -49,14 +49,12 @@ import { generateIdenticon, stringToColor } from '../../utils/identicon'; // ←
                 [class.user-menu-desktop]="(isMobile$ | async) === false" 
                 (click)="toggleDropdown($event)"
               >
-                <!-- ✅ FIXED: Use identicon as fallback -->
                 <img 
                   [src]="getUserAvatar()"
                   alt="User avatar" 
                   class="user-avatar" 
                   [class.user-avatar-mobile]="(isMobile$ | async) === true"
                 >
-                <!-- Use Firebase user for email and photo, but we also display role -->
                 <span class="user-email">
                   {{ (authService.currentUser$ | async)?.email || (authService.currentUser$ | async)?.displayName }}
                 </span>
@@ -68,7 +66,6 @@ import { generateIdenticon, stringToColor } from '../../utils/identicon'; // ←
               <div class="dropdown-menu" [class.dropdown-menu-mobile]="(isMobile$ | async) === true" *ngIf="dropdownOpen">
                 <button class="dropdown-item" (click)="goToUserPanel()">User Panel</button>
                 <button class="dropdown-item" (click)="goToSettings()">Settings</button>  
-                <!-- Admin panel only for admins -->
                 <button *ngIf="(authService.isAdmin$ | async)" class="dropdown-item" (click)="goToAdminPanel()">Admin Panel</button>
                 <button class="dropdown-item" (click)="logout()">Logout</button>
               </div>
@@ -79,235 +76,230 @@ import { generateIdenticon, stringToColor } from '../../utils/identicon'; // ←
     </div>
   `,
   styles: [`
-  /* ── Top bar container ── */
-  .top-bar {
-    background: #1a1a2e;
-    color: #fff;
-    padding: 0 1.5rem;
-    height: 64px;
-    display: flex;
-    align-items: center;
-    border-bottom: 1px solid #2a2a4a;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-  }
-
-  .top-bar-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  /* ── Left group (logo + mobile menu) ── */
-  .left-group {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .menu-button {
-    background: none;
-    border: none;
-    color: #fff;
-    cursor: pointer;
-    padding: 4px;
-    display: flex;
-    align-items: center;
-  }
-
-  .logo-link {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #fff;
-    text-decoration: none;
-    letter-spacing: 0.5px;
-    background: linear-gradient(135deg, #f093fb, #f5576c);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* ── Desktop navigation ── */
-  .desktop-nav {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-    margin: 0 1.5rem;
-  }
-
-  .desktop-nav a {
-    color: #b0b0d0;
-    text-decoration: none;
-    font-size: 1rem;
-    font-weight: 500;
-    transition: color 0.2s;
-    position: relative;
-  }
-
-  .desktop-nav a:hover {
-    color: #fff;
-  }
-
-  .desktop-nav a.active::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: #f5576c;
-    border-radius: 2px;
-  }
-
-  /* ── Right group (auth) ── */
-  .right-group {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .login-button {
-    background: #f5576c;
-    border: none;
-    color: #fff;
-    padding: 0.4rem 1.2rem;
-    border-radius: 20px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
-  }
-
-  .login-button:hover {
-    background: #e8495e;
-  }
-
-  .login-button:active {
-    transform: scale(0.96);
-  }
-
-  /* ── User menu (avatar + email + dropdown) ── */
-  .user-menu-container {
-    position: relative;
-  }
-
-  .user-menu {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.3rem 0.8rem 0.3rem 0.3rem;
-    border-radius: 30px;
-    cursor: pointer;
-    transition: background 0.2s;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid transparent;
-  }
-
-  .user-menu:hover {
-    background: rgba(255,255,255,0.12);
-    border-color: rgba(255,255,255,0.15);
-  }
-
-  .user-avatar {
-    border-radius: 50%;
-    object-fit: cover;
-    width: 36px;
-    height: 36px;
-    border: 2px solid #f5576c;
-  }
-
-  .user-avatar-mobile {
-    width: 32px;
-    height: 32px;
-  }
-
-  .user-email {
-    font-size: 0.9rem;
-    color: #e0e0f0;
-    white-space: nowrap;
-    max-width: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .dropdown-arrow {
-    color: #b0b0d0;
-    flex-shrink: 0;
-  }
-
-  /* ── Dropdown menu ── */
-  .dropdown-menu {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    background: #252545;
-    border-radius: 12px;
-    min-width: 180px;
-    padding: 0.5rem 0;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-    border: 1px solid #3a3a5a;
-    z-index: 1001;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .dropdown-menu-mobile {
-    position: fixed;
-    top: 64px;
-    left: 0;
-    right: 0;
-    width: 100%;
-    border-radius: 0;
-    border: none;
-    border-bottom: 1px solid #3a3a5a;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-  }
-
-  .dropdown-item {
-    background: none;
-    border: none;
-    color: #d0d0e8;
-    padding: 0.7rem 1.5rem;
-    text-align: left;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-    width: 100%;
-  }
-
-  .dropdown-item:hover {
-    background: rgba(255,255,255,0.08);
-    color: #fff;
-  }
-
-  .dropdown-item:active {
-    background: rgba(255,255,255,0.15);
-  }
-
-  /* ── Mobile adjustments ── */
-  @media (max-width: 768px) {
+    /* ── Top bar container ── */
     .top-bar {
-      padding: 0 1rem;
+      background: #1a1a2e;
+      color: #fff;
+      padding: 0 1.5rem;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #2a2a4a;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
 
-    .user-email {
-      max-width: 100px;
-      font-size: 0.8rem;
+    .top-bar-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .left-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .menu-button {
+      background: none;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+    }
+
+    .logo-link {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      background: linear-gradient(135deg, #f093fb, #f5576c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .desktop-nav {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      margin: 0 1.5rem;
+    }
+
+    .desktop-nav a {
+      color: #b0b0d0;
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: color 0.2s;
+      position: relative;
+    }
+
+    .desktop-nav a:hover {
+      color: #fff;
+    }
+
+    .desktop-nav a.active::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #f5576c;
+      border-radius: 2px;
+    }
+
+    .right-group {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .login-button {
+      background: #f5576c;
+      border: none;
+      color: #fff;
+      padding: 0.4rem 1.2rem;
+      border-radius: 20px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .login-button:hover {
+      background: #e8495e;
+    }
+
+    .login-button:active {
+      transform: scale(0.96);
+    }
+
+    .user-menu-container {
+      position: relative;
     }
 
     .user-menu {
-      padding: 0.2rem 0.5rem 0.2rem 0.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.3rem 0.8rem 0.3rem 0.3rem;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: background 0.2s;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid transparent;
+    }
+
+    .user-menu:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.15);
+    }
+
+    .user-avatar {
+      border-radius: 50%;
+      object-fit: cover;
+      width: 36px;
+      height: 36px;
+      border: 2px solid #f5576c;
+    }
+
+    .user-avatar-mobile {
+      width: 32px;
+      height: 32px;
+    }
+
+    .user-email {
+      font-size: 0.9rem;
+      color: #e0e0f0;
+      white-space: nowrap;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .dropdown-arrow {
+      color: #b0b0d0;
+      flex-shrink: 0;
     }
 
     .dropdown-menu {
-      min-width: 100%;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: #252545;
+      border-radius: 12px;
+      min-width: 180px;
+      padding: 0.5rem 0;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      border: 1px solid #3a3a5a;
+      z-index: 1001;
+      display: flex;
+      flex-direction: column;
     }
-  }
-`]
+
+    .dropdown-menu-mobile {
+      position: fixed;
+      top: 64px;
+      left: 0;
+      right: 0;
+      width: 100%;
+      border-radius: 0;
+      border: none;
+      border-bottom: 1px solid #3a3a5a;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    }
+
+    .dropdown-item {
+      background: none;
+      border: none;
+      color: #d0d0e8;
+      padding: 0.7rem 1.5rem;
+      text-align: left;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      width: 100%;
+    }
+
+    .dropdown-item:hover {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+    }
+
+    .dropdown-item:active {
+      background: rgba(255,255,255,0.15);
+    }
+
+    /* ── Mobile adjustments ── */
+    @media (max-width: 768px) {
+      .top-bar {
+        padding: 0 1rem;
+      }
+
+      .user-email {
+        max-width: 100px;
+        font-size: 0.8rem;
+      }
+
+      .user-menu {
+        padding: 0.2rem 0.5rem 0.2rem 0.2rem;
+      }
+
+      .dropdown-menu {
+        min-width: 100%;
+      }
+    }   /* ✅ This closing brace was missing — now fixed */
+  `]
 })
 export class TopBarComponent implements OnInit {
   isMobile$: Observable<boolean>;
@@ -322,9 +314,7 @@ export class TopBarComponent implements OnInit {
     this.isMobile$ = this.navigationService.isMobile$;
   }
 
-  ngOnInit() {
-    // Any init logic if needed
-  }
+  ngOnInit() { }
 
   /**
    * Returns the user's avatar URL:
@@ -335,20 +325,31 @@ export class TopBarComponent implements OnInit {
     const user = this.authService.currentUser;
     if (!user) return '';
 
-    // If user has a real photo (from Google), use it
-    if (user.displayName) {
-      // Note: Firebase User object has photoURL directly, 
-      // but your AppUser interface may not include it.
-      // You can access it via this.authService.auth.currentUser?.photoURL
-    }
+    // If you want to use photoURL from Firebase, uncomment:
+    // const firebaseUser = this.authService.auth.currentUser;
+    // if (firebaseUser?.photoURL) return firebaseUser.photoURL;
 
-    // Generate identicon as fallback
     const name = user.displayName || user.email || 'User';
     const color = stringToColor(name);
     return generateIdenticon(name, color, 200);
   }
 
-  // ... rest of your methods
+  // ─── Navigation methods ───────────────────────────────────────────
+  navigateToLogin() {
+    this.router.navigate(['/login']);
+  }
+
+  toggleDropdown(event: Event) {
+    event.stopPropagation();
+    this.dropdownOpen = !this.dropdownOpen;
+  }
+
+  toggleMobileMenu() {
+    // Implement your mobile menu toggle (e.g., emit event, open sidebar)
+    console.log('Mobile menu toggled');
+    // Example: if you have a service, call it.
+  }
+
   goToChangePassword() {
     this.dropdownOpen = false;
     this.router.navigate(['/change-password']);
@@ -373,30 +374,5 @@ export class TopBarComponent implements OnInit {
     this.dropdownOpen = false;
     this.authService.logout();
     this.router.navigate(['/']);
-  }
-    /**
-   * Toggle mobile menu (emit event or handle sidebar)
-   * You can customize this to emit to a parent or toggle a service flag.
-   */
-  toggleMobileMenu() {
-    // Example: emit or toggle a sidebar state.
-    // For now, just log or call navigationService if you have one.
-    console.log('Mobile menu toggled');
-    // If you have a sidebar service, call it here.
-  }
-
-  /**
-   * Navigate to the login page
-   */
-  navigateToLogin() {
-    this.router.navigate(['/login']);
-  }
-
-  /**
-   * Toggle the user dropdown and stop event propagation to avoid closing immediately
-   */
-  toggleDropdown(event: Event) {
-    event.stopPropagation();
-    this.dropdownOpen = !this.dropdownOpen;
   }
 }
