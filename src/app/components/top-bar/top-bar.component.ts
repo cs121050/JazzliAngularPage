@@ -204,4 +204,23 @@ export class TopBarComponent implements OnInit {
     this.authService.logout();
     this.router.navigate(['/']);
   }
+
+  toggleMobileMenu() {
+  this.navigationService.toggleMobileMenu();
+}
+
+navigateToLogin() {
+  this.router.navigate(['/login']);
+}
+
+toggleDropdown(event: Event) {
+  event.stopPropagation();
+  this.dropdownOpen = !this.dropdownOpen;
+}
+
+// Add this HostListener if not already there
+@HostListener('document:click')
+closeDropdown() {
+  this.dropdownOpen = false;
+}
 }
