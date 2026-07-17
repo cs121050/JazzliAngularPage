@@ -56,7 +56,7 @@ import { generateIdenticon, stringToColor } from '../../utils/identicon'; // ←
                   class="user-avatar" 
                   [class.user-avatar-mobile]="(isMobile$ | async) === true"
                 >
-                <!-- Use Firebase user for email and photo, but we also display role -->
+                <!-- Use Firebase user for email and photo-->
                 <span class="user-email">
                   {{ (authService.currentUser$ | async)?.email || (authService.currentUser$ | async)?.displayName }}
                 </span>
@@ -91,6 +91,52 @@ import { generateIdenticon, stringToColor } from '../../utils/identicon'; // ←
       margin-left: 4px;
       text-transform: uppercase;
     }
+      
+  .user-menu-mobile {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background-color: rgba(128, 128, 128, 0.12);  /* always gray */
+    border: 1px solid rgba(128, 128, 128, 0.15);
+    user-select: none;
+    -webkit-user-select: none;
+    transition: background-color 0.1s ease;  /* quick transition for flash */
+    -webkit-tap-highlight-color: transparent; /* removes default mobile highlight */
+  }
+
+  /* Dark flash on tap (active state) */
+  .user-menu-mobile:active {
+    background-color: #000000;   /* ⚠️ CHANGE THIS to your actual top‑bar color */
+    border-color: #000000;
+  }
+
+    .dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background-color: rgba(128, 128, 128, 0.12);   /* gray */
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+    padding: 4px 0;
+    z-index: 1000;
+    border: 1px solid rgba(128, 128, 128, 0.12);
+  }
+
+  .dropdown-menu-mobile {
+    position: fixed;
+    top: 60px; /* adjust to your top bar height */
+    left: 0;
+    right: 0;
+    width: 100%;
+    border-radius: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background-color: rgba(128, 128, 128, 0.12);   /* gray */
+  }
+
   `]
 })
 export class TopBarComponent implements OnInit {
