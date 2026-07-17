@@ -352,9 +352,13 @@ export class LoginComponent {
   }
 
   async submit() {
+    console.log('🟢 [submit] Called. Email:', this.email, 'Password length:', this.password?.length);
+    
     if (!this.email || !this.password) {
+      console.log('🟡 [submit] Missing email or password');
       this.ngZone.run(() => {
         this.errorMessage = 'Please enter email and password';
+        console.log('🟡 [submit] Error message set (inside ngZone)');
       });
       return;
     }
@@ -362,35 +366,62 @@ export class LoginComponent {
     this.ngZone.run(() => {
       this.loading = true;
       this.errorMessage = '';
+      console.log('🔄 [submit] Loading set to TRUE (inside ngZone). Current loading value:', this.loading);
     });
 
+    // Check loading value immediately after setting
+    console.log('🔍 [submit] Loading value AFTER ngZone.run:', this.loading);
+
     try {
+      console.log('🟢 [submit] Calling Firebase auth...');
       if (this.isSignUp) {
         await this.authService.signUpWithEmail(this.email, this.password);
       } else {
         await this.authService.signInWithEmail(this.email, this.password);
       }
+      console.log('✅ [submit] Firebase auth SUCCESS');
       this.router.navigate(['/']);
     } catch (err: any) {
+      console.log('❌ [submit] Firebase auth ERROR:', err);
+      console.log('❌ [submit] Error code:', err?.code);
+      console.log('❌ [submit] Error message:', err?.message);
+      
       this.ngZone.run(() => {
-        this.errorMessage = this.getFirebaseErrorMessage(err.code);
+        const errorMsg = this.getFirebaseErrorMessage(err.code);
+        console.log('❌ [submit] Setting error message (inside ngZone):', errorMsg);
+        this.errorMessage = errorMsg;
       });
     } finally {
+      console.log('🏁 [submit] FINALLY block executing...');
+      console.log('🏁 [submit] Loading BEFORE setting false:', this.loading);
+      
       this.ngZone.run(() => {
         this.loading = false;
+        console.log('🏁 [submit] Loading set to FALSE (inside ngZone). Current loading value:', this.loading);
       });
+      
+      // Check loading value after ngZone.run
+      setTimeout(() => {
+        console.log('⏰ [submit] Loading value AFTER timeout:', this.loading);
+        console.log('⏰ [submit] Is NgZone stable?', this.ngZone.isStable);
+      }, 100);
     }
   }
 
   toggleMode() {
+    console.log('🔄 [toggleMode] Switching mode. Was:', this.isSignUp ? 'Sign Up' : 'Sign In');
     this.isSignUp = !this.isSignUp;
     this.errorMessage = '';
   }
 
   async forgotPassword() {
+    console.log('🟢 [forgotPassword] Called. Email:', this.email);
+    
     if (!this.email) {
+      console.log('🟡 [forgotPassword] No email provided');
       this.ngZone.run(() => {
         this.errorMessage = 'Please enter your email address first';
+        console.log('🟡 [forgotPassword] Error message set (inside ngZone)');
       });
       return;
     }
@@ -398,56 +429,117 @@ export class LoginComponent {
     this.ngZone.run(() => {
       this.loading = true;
       this.errorMessage = '';
+      console.log('🔄 [forgotPassword] Loading set to TRUE (inside ngZone)');
     });
 
+    console.log('🔍 [forgotPassword] Loading value AFTER ngZone.run:', this.loading);
+
     try {
+      console.log('🟢 [forgotPassword] Sending password reset email...');
       await this.authService.sendPasswordResetEmail(this.email);
+      console.log('✅ [forgotPassword] Email sent SUCCESS');
+      
       this.ngZone.run(() => {
         this.errorMessage = 'Password reset email sent! Check your inbox.';
+        console.log('✅ [forgotPassword] Success message set (inside ngZone)');
       });
     } catch (err: any) {
+      console.log('❌ [forgotPassword] ERROR:', err);
+      console.log('❌ [forgotPassword] Error code:', err?.code);
+      
       this.ngZone.run(() => {
-        this.errorMessage = this.getFirebaseErrorMessage(err.code);
+        const errorMsg = this.getFirebaseErrorMessage(err.code);
+        console.log('❌ [forgotPassword] Setting error message (inside ngZone):', errorMsg);
+        this.errorMessage = errorMsg;
       });
     } finally {
+      console.log('🏁 [forgotPassword] FINALLY block executing...');
+      console.log('🏁 [forgotPassword] Loading BEFORE setting false:', this.loading);
+      
       this.ngZone.run(() => {
         this.loading = false;
+        console.log('🏁 [forgotPassword] Loading set to FALSE (inside ngZone). Current loading value:', this.loading);
       });
+      
+      setTimeout(() => {
+        console.log('⏰ [forgotPassword] Loading value AFTER timeout:', this.loading);
+      }, 100);
     }
   }
 
   async signInWithGoogle() {
+    console.log('🟢 [signInWithGoogle] Called');
+    
     this.ngZone.run(() => {
       this.loading = true;
       this.errorMessage = '';
+      console.log('🔄 [signInWithGoogle] Loading set to TRUE (inside ngZone)');
     });
 
+    console.log('🔍 [signInWithGoogle] Loading value AFTER ngZone.run:', this.loading);
+
     try {
+      console.log('🟢 [signInWithGoogle] Calling Firebase Google auth...');
       await this.authService.signInWithGoogle();
+      console.log('✅ [signInWithGoogle] Google auth SUCCESS');
       this.router.navigate(['/']);
     } catch (err: any) {
+      console.log('❌ [signInWithGoogle] ERROR:', err);
+      console.log('❌ [signInWithGoogle] Error code:', err?.code);
+      
       this.ngZone.run(() => {
-        this.errorMessage = this.getFirebaseErrorMessage(err.code);
+        const errorMsg = this.getFirebaseErrorMessage(err.code);
+        console.log('❌ [signInWithGoogle] Setting error message (inside ngZone):', errorMsg);
+        this.errorMessage = errorMsg;
       });
     } finally {
+      console.log('🏁 [signInWithGoogle] FINALLY block executing...');
+      console.log('🏁 [signInWithGoogle] Loading BEFORE setting false:', this.loading);
+      
       this.ngZone.run(() => {
         this.loading = false;
+        console.log('🏁 [signInWithGoogle] Loading set to FALSE (inside ngZone). Current loading value:', this.loading);
       });
+      
+      setTimeout(() => {
+        console.log('⏰ [signInWithGoogle] Loading value AFTER timeout:', this.loading);
+      }, 100);
     }
   }
 
   private getFirebaseErrorMessage(code: string): string {
+    console.log('🔍 [getFirebaseErrorMessage] Code received:', code);
+    let message: string;
+    
     switch (code) {
-      case 'auth/invalid-email': return 'Invalid email address.';
-      case 'auth/user-disabled': return 'This account has been disabled.';
-      case 'auth/user-not-found': return 'No account found with this email.';
-      case 'auth/wrong-password': return 'Incorrect password.';
-      case 'auth/email-already-in-use': return 'Email already registered.';
-      case 'auth/weak-password': return 'Password should be at least 6 characters.';
+      case 'auth/invalid-email':
+        message = 'Invalid email address.';
+        break;
+      case 'auth/user-disabled':
+        message = 'This account has been disabled.';
+        break;
+      case 'auth/user-not-found':
+        message = 'No account found with this email.';
+        break;
+      case 'auth/wrong-password':
+        message = 'Incorrect password.';
+        break;
+      case 'auth/email-already-in-use':
+        message = 'Email already registered.';
+        break;
+      case 'auth/weak-password':
+        message = 'Password should be at least 6 characters.';
+        break;
       case 'auth/invalid-credential':
       case 'auth/invalid-login-credentials':
-        return 'Invalid email or password.';
-      default: return 'An error occurred. Please try again.';
+        message = 'Invalid email or password.';
+        break;
+      default:
+        message = `An error occurred. Please try again. (code: ${code || 'unknown'})`;
+        break;
     }
+    
+    console.log('🔍 [getFirebaseErrorMessage] Returning message:', message);
+    return message;
   }
 }
