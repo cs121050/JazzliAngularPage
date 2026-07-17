@@ -55,12 +55,9 @@ import { generateIdenticon, stringToColor } from '../../utils/identicon';
                   class="user-avatar" 
                   [class.user-avatar-mobile]="(isMobile$ | async) === true"
                 >
+                <!-- Only email, no role displayed -->
                 <span class="user-email">
                   {{ (authService.currentUser$ | async)?.email || (authService.currentUser$ | async)?.displayName }}
-                  <!-- 👇 Remove this <span> if you don't want the role displayed -->
-                  <span *ngIf="(authService.currentUser$ | async) as appUser" class="user-role">
-                    ({{ appUser.role }})
-                  </span>
                 </span>
                 <svg *ngIf="(isMobile$ | async) === false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="dropdown-arrow">
                   <polyline points="6 9 12 15 18 9"></polyline>
@@ -302,7 +299,7 @@ import { generateIdenticon, stringToColor } from '../../utils/identicon';
       .dropdown-menu {
         min-width: 100%;
       }
-    }   /* ✅ This closing brace was missing — now fixed */
+    }
   `]
 })
 export class TopBarComponent implements OnInit {
@@ -351,7 +348,6 @@ export class TopBarComponent implements OnInit {
   toggleMobileMenu() {
     // Implement your mobile menu toggle (e.g., emit event, open sidebar)
     console.log('Mobile menu toggled');
-    // Example: if you have a service, call it.
   }
 
   goToChangePassword() {
