@@ -1,3 +1,4 @@
+// src/app/components/top-bar/top-bar.component.ts
 import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -6,7 +7,7 @@ import { NavigationService } from '../../services/navigation.service';
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 import { map } from 'rxjs/operators';
-import { generateIdenticon, stringToColor } from '../../utils/identicon'; // ← Import
+import { generateIdenticon, stringToColor } from '../../utils/identicon';
 
 @Component({
   selector: 'app-top-bar',
@@ -49,14 +50,13 @@ import { generateIdenticon, stringToColor } from '../../utils/identicon'; // ←
                 [class.user-menu-desktop]="(isMobile$ | async) === false" 
                 (click)="toggleDropdown($event)"
               >
-                <!-- ✅ FIXED: Use identicon as fallback -->
+                <!-- Show email from Firebase -->
                 <img 
                   [src]="getUserAvatar()"
                   alt="User avatar" 
                   class="user-avatar" 
                   [class.user-avatar-mobile]="(isMobile$ | async) === true"
                 >
-                <!-- Use Firebase user for email and photo-->
                 <span class="user-email">
                   {{ (authService.currentUser$ | async)?.email || (authService.currentUser$ | async)?.displayName }}
                 </span>
@@ -152,9 +152,7 @@ export class TopBarComponent implements OnInit {
     this.isMobile$ = this.navigationService.isMobile$;
   }
 
-  ngOnInit() {
-    // Any init logic if needed
-  }
+  ngOnInit() {}
 
   /**
    * Returns the user's avatar URL:
@@ -165,11 +163,10 @@ export class TopBarComponent implements OnInit {
     const user = this.authService.currentUser;
     if (!user) return '';
 
-    // If user has a real photo (from Google), use it
-    if (user.displayName) {
-      // Note: Firebase User object has photoURL directly, 
-      // but your AppUser interface may not include it.
-      // You can access it via this.authService.auth.currentUser?.photoURL
+    // Check for Google photo first
+    const firebaseUser = (this.authService as any).auth?.currentUser;
+    if (firebaseUser?.photoURL) {
+      return firebaseUser.photoURL;
     }
 
     // Generate identicon as fallback
@@ -178,7 +175,24 @@ export class TopBarComponent implements OnInit {
     return generateIdenticon(name, color, 200);
   }
 
-  // ... rest of your methods
+  toggleMobileMenu() {
+    this.navigationService.toggleMobileMenu();
+  }
+
+  navigateToLogin() {
+    this.router.navigate(['/login']);
+  }
+
+  toggleDropdown(event: Event) {
+    event.stopPropagation();
+    this.dropdownOpen = !this.dropdownOpen;
+  }
+
+  @HostListener('document:click')
+  closeDropdown() {
+    this.dropdownOpen = false;
+  }
+
   goToChangePassword() {
     this.dropdownOpen = false;
     this.router.navigate(['/change-password']);
