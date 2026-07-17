@@ -89,27 +89,6 @@ import { generateIdenticon, stringToColor } from '../../utils/identicon';
       text-transform: uppercase;
     }
 
-    .user-menu-mobile {
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    background-color: rgba(128, 128, 128, 0.12);  /* always gray */
-    border: 1px solid rgba(128, 128, 128, 0.15);
-    user-select: none;
-    -webkit-user-select: none;
-    transition: background-color 0.1s ease;  /* quick transition for flash */
-    -webkit-tap-highlight-color: transparent; /* removes default mobile highlight */
-  }
-
-  /* Dark flash on tap (active state) */
-  .user-menu-mobile:active {
-    background-color: #000000;   /* ⚠️ CHANGE THIS to your actual top‑bar color */
-    border-color: #000000;
-  }
-
     .dropdown-menu {
     position: absolute;
     top: calc(100% + 8px);
@@ -152,16 +131,6 @@ export class TopBarComponent implements OnInit {
     // Any init logic if needed
   }
 
-  // -------- Missing methods added below --------
-
-  toggleMobileMenu() {
-    // If your NavigationService has a method to toggle the mobile menu, call it here.
-    // Otherwise, you can emit an event or just log.
-    // Example: this.navigationService.toggleMobileMenu();
-    console.log('Mobile menu toggled');
-    // Optionally, if you have a sidebar component, you can use a service or Subject.
-  }
-
   navigateToLogin() {
     this.router.navigate(['/login']);
   }
@@ -192,10 +161,6 @@ export class TopBarComponent implements OnInit {
     const color = stringToColor(name);
     return generateIdenticon(name, color, 200);
   }
-
-  toggleMobileMenu() {
-      this.navigationService.toggleMobileMenu();
-    }
 
     navigateToLogin() {
       this.router.navigate(['/login']);
