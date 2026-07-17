@@ -300,6 +300,7 @@ import { generateIdenticon, stringToColor } from '../../utils/identicon';
         min-width: 100%;
       }
     }
+
   `]
 })
 export class TopBarComponent implements OnInit {
@@ -317,37 +318,41 @@ export class TopBarComponent implements OnInit {
 
   ngOnInit() { }
 
-  /**
-   * Returns the user's avatar URL:
-   * - Uses photoURL from Firebase if available (Google sign-in)
-   * - Falls back to generated identicon (based on email or display name)
-   */
+  navigateToLogin() {
+    this.router.navigate(['/login']);
+  }
+
+  toggleDropdown(event: Event) {
+    event.stopPropagation(); // Prevents the click from bubbling up and closing immediately
+    this.dropdownOpen = !this.dropdownOpen;
+  }
+
+  // Optional: close dropdown when clicking outside
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event) {
+    if (this.dropdownOpen && !this.elementRef.nativeElement.contains(event.target)) {
+      this.dropdownOpen = false;
+    }
+  }
+
+  // -------- Existing methods --------
+
   getUserAvatar(): string {
     const user = this.authService.currentUser;
     if (!user) return '';
 
-    // If you want to use photoURL from Firebase, uncomment:
-    // const firebaseUser = this.authService.auth.currentUser;
-    // if (firebaseUser?.photoURL) return firebaseUser.photoURL;
+    // You could also use user.photoURL if available (e.g., from Google)
+    // if (user.photoURL) return user.photoURL;
 
     const name = user.displayName || user.email || 'User';
     const color = stringToColor(name);
     return generateIdenticon(name, color, 200);
   }
 
-  // ─── Navigation methods ───────────────────────────────────────────
-  navigateToLogin() {
-    this.router.navigate(['/login']);
-  }
-
-  toggleDropdown(event: Event) {
-    event.stopPropagation();
-    this.dropdownOpen = !this.dropdownOpen;
-  }
-
   toggleMobileMenu() {
     // Implement your mobile menu toggle (e.g., emit event, open sidebar)
     console.log('Mobile menu toggled');
+
   }
 
   goToChangePassword() {
