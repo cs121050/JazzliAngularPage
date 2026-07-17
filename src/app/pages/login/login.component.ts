@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LayoutComponent } from '../../components/layout/layout.component';
 import { AuthService } from '../../services/auth.service';
+import { NgZone } from '@angular/core';
 
 @Component({
   selector: 'app-login',
@@ -335,6 +336,7 @@ import { AuthService } from '../../services/auth.service';
 export class LoginComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private ngZone = inject(NgZone);
 
   email = '';
   password = '';
@@ -344,28 +346,34 @@ export class LoginComponent {
   passwordVisible = false;
 
   async submit() {
-    if (!this.email || !this.password) {
+  if (!this.email || !this.password) {
+    this.ngZone.run(() => {
       this.errorMessage = 'Please enter email and password';
-      return;
-    }
+    });
+    return;
+  }
 
+  this.ngZone.run(() => {
     this.loading = true;
     this.errorMessage = '';
+  });
 
-    try {
-      if (this.isSignUp) {
-        await this.authService.signUpWithEmail(this.email, this.password);
-      } else {
-        await this.authService.signInWithEmail(this.email, this.password);
-      }
-      this.email = '';
-      this.password = '';
-      this.router.navigate(['/']);
-      window.dispatchEvent(new CustomEvent('navigateTo', { detail: 'home' }));
-    } catch (err: any) {
+  try {
+    if (this.isSignUp) {
+      await this.authService.signUpWithEmail(this.email, this.password);
+    } else {
+      await this.authService.signInWithEmail(this.email, this.password);
+    }
+    // success – no UI update needed here (router navigation triggers its own change detection)
+    this.router.navigate(['/']);
+  } catch (err: any) {
+    this.ngZone.run(() => {
       this.errorMessage = this.getFirebaseErrorMessage(err.code);
-    } finally {
+    });
+  } finally {
+    this.ngZone.run(() => {
       this.loading = false;
+    });
     }
   }
 
