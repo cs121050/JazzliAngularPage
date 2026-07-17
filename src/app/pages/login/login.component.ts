@@ -1,11 +1,10 @@
 // login.component.ts
-import { Component, inject, NgZone } from '@angular/core';
+import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LayoutComponent } from '../../components/layout/layout.component';
 import { AuthService } from '../../services/auth.service';
-import { generateIdenticon, stringToColor } from '../../utils/identicon';
 
 @Component({
   selector: 'app-login',
@@ -118,227 +117,41 @@ import { generateIdenticon, stringToColor } from '../../utils/identicon';
     </app-layout>
   `,
   styles: [`
-    * {
-      font-family: "Inter Tight", sans-serif;
-    }
-
-    .login-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: calc(100vh - 49px);
-      padding: 2rem 1rem;
-    }
-
-    .login-card {
-      background: white;
-      border-radius: 1rem;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-      padding: 2rem;
-      width: 100%;
-      max-width: 420px;
-      transition: all 0.3s ease;
-    }
-
-    .title {
-      font-size: 2rem;
-      font-weight: 600;
-      text-align: center;
-      margin-bottom: 2rem;
-      background: linear-gradient(90deg, #F0060B 0%, #CC26D5 50%, #7702FF 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .input-group {
-      margin-bottom: 1.25rem;
-    }
-
-    .input-label {
-      display: block;
-      font-size: 0.875rem;
-      font-weight: 500;
-      margin-bottom: 0.5rem;
-      color: #333;
-    }
-
-    .input-icon-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .input-icon {
-      position: absolute;
-      left: 12px;
-      color: #999;
-      pointer-events: none;
-    }
-
-    .input-field {
-      width: 100%;
-      padding: 0.75rem 0.75rem 0.75rem 2.5rem;
-      border: 1px solid #ddd;
-      border-radius: 0.5rem;
-      font-size: 1rem;
-      transition: border-color 0.2s ease;
-    }
-
-    .input-field:focus {
-      outline: none;
-      border-color: #CC26D5;
-    }
-
-    .input-field:disabled {
-      background: #f5f5f5;
-      cursor: not-allowed;
-    }
-
-    .password-toggle {
-      position: absolute;
-      right: 12px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      color: #999;
-      padding: 0;
-    }
-
-    .error-message {
-      background: #fee2e2;
-      color: #dc2626;
-      padding: 0.75rem;
-      border-radius: 0.5rem;
-      font-size: 0.875rem;
-      margin-bottom: 1.25rem;
-    }
-
-    .submit-button {
-      width: 100%;
-      background: linear-gradient(90deg, #F0060B 0%, #CC26D5 50%, #7702FF 100%);
-      color: white;
-      border: none;
-      padding: 0.75rem;
-      border-radius: 0.5rem;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.2s ease, opacity 0.2s ease;
-      margin-bottom: 0.75rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 48px;
-    }
-
-    .submit-button:hover:not(:disabled) {
-      transform: scale(1.02);
-    }
-
-    .submit-button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .toggle-mode, .forgot-password {
-      width: 100%;
-      background: none;
-      border: none;
-      color: #CC26D5;
-      font-size: 0.875rem;
-      cursor: pointer;
-      padding: 0.5rem;
-      margin-bottom: 0.5rem;
-      transition: opacity 0.2s ease;
-    }
-
-    .toggle-mode:hover:not(:disabled), .forgot-password:hover:not(:disabled) {
-      opacity: 0.8;
-      text-decoration: underline;
-    }
-
-    .divider {
-      text-align: center;
-      margin: 1.5rem 0;
-      position: relative;
-      color: #999;
-      font-size: 0.875rem;
-    }
-
-    .divider::before,
-    .divider::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      width: calc(50% - 30px);
-      height: 1px;
-      background: #ddd;
-    }
-
-    .divider::before {
-      left: 0;
-    }
-
-    .divider::after {
-      right: 0;
-    }
-
-    .google-button {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
-      background: white;
-      border: 1px solid #ddd;
-      padding: 0.75rem;
-      border-radius: 0.5rem;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.2s ease;
-    }
-
-    .google-button:hover:not(:disabled) {
-      background: #f9f9f9;
-    }
-
-    .google-button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .spinner {
-      width: 20px;
-      height: 20px;
-      border: 2px solid white;
-      border-top-color: transparent;
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    @media (max-width: 480px) {
-      .login-card {
-        padding: 1.5rem;
-      }
-      .title {
-        font-size: 1.75rem;
-      }
-    }
+    * { font-family: "Inter Tight", sans-serif; }
+    .login-container { display: flex; justify-content: center; align-items: center; min-height: calc(100vh - 49px); padding: 2rem 1rem; }
+    .login-card { background: white; border-radius: 1rem; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08); padding: 2rem; width: 100%; max-width: 420px; }
+    .title { font-size: 2rem; font-weight: 600; text-align: center; margin-bottom: 2rem; background: linear-gradient(90deg, #F0060B 0%, #CC26D5 50%, #7702FF 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .input-group { margin-bottom: 1.25rem; }
+    .input-label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: #333; }
+    .input-icon-wrapper { position: relative; display: flex; align-items: center; }
+    .input-icon { position: absolute; left: 12px; color: #999; pointer-events: none; }
+    .input-field { width: 100%; padding: 0.75rem 0.75rem 0.75rem 2.5rem; border: 1px solid #ddd; border-radius: 0.5rem; font-size: 1rem; }
+    .input-field:focus { outline: none; border-color: #CC26D5; }
+    .input-field:disabled { background: #f5f5f5; cursor: not-allowed; }
+    .password-toggle { position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #999; padding: 0; }
+    .error-message { background: #fee2e2; color: #dc2626; padding: 0.75rem; border-radius: 0.5rem; font-size: 0.875rem; margin-bottom: 1.25rem; }
+    .submit-button { width: 100%; background: linear-gradient(90deg, #F0060B 0%, #CC26D5 50%, #7702FF 100%); color: white; border: none; padding: 0.75rem; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; margin-bottom: 0.75rem; display: flex; justify-content: center; align-items: center; min-height: 48px; }
+    .submit-button:hover:not(:disabled) { transform: scale(1.02); }
+    .submit-button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .toggle-mode, .forgot-password { width: 100%; background: none; border: none; color: #CC26D5; font-size: 0.875rem; cursor: pointer; padding: 0.5rem; margin-bottom: 0.5rem; }
+    .toggle-mode:hover:not(:disabled), .forgot-password:hover:not(:disabled) { opacity: 0.8; text-decoration: underline; }
+    .divider { text-align: center; margin: 1.5rem 0; position: relative; color: #999; font-size: 0.875rem; }
+    .divider::before, .divider::after { content: ''; position: absolute; top: 50%; width: calc(50% - 30px); height: 1px; background: #ddd; }
+    .divider::before { left: 0; }
+    .divider::after { right: 0; }
+    .google-button { width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.75rem; background: white; border: 1px solid #ddd; padding: 0.75rem; border-radius: 0.5rem; font-size: 1rem; cursor: pointer; }
+    .google-button:hover:not(:disabled) { background: #f9f9f9; }
+    .google-button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .spinner { width: 20px; height: 20px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 480px) { .login-card { padding: 1.5rem; } .title { font-size: 1.75rem; } }
   `]
 })
 export class LoginComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
-  private ngZone = inject(NgZone);
-    
-  identiconUrl: string = '';
+  private cdr = inject(ChangeDetectorRef);
+
   email = '';
   password = '';
   isSignUp = false;
@@ -346,200 +159,91 @@ export class LoginComponent {
   errorMessage = '';
   passwordVisible = false;
 
-  generateUserIdenticon(name: string): string {
-    const color = stringToColor(name);
-    return generateIdenticon(name, color, 200);
-  }
-
   async submit() {
-    console.log('🟢 [submit] Called. Email:', this.email, 'Password length:', this.password?.length);
-    
     if (!this.email || !this.password) {
-      console.log('🟡 [submit] Missing email or password');
-      this.ngZone.run(() => {
-        this.errorMessage = 'Please enter email and password';
-        console.log('🟡 [submit] Error message set (inside ngZone)');
-      });
+      this.errorMessage = 'Please enter email and password';
+      this.cdr.detectChanges();
       return;
     }
 
-    this.ngZone.run(() => {
-      this.loading = true;
-      this.errorMessage = '';
-      console.log('🔄 [submit] Loading set to TRUE (inside ngZone). Current loading value:', this.loading);
-    });
-
-    // Check loading value immediately after setting
-    console.log('🔍 [submit] Loading value AFTER ngZone.run:', this.loading);
+    this.loading = true;
+    this.errorMessage = '';
+    this.cdr.detectChanges();
 
     try {
-      console.log('🟢 [submit] Calling Firebase auth...');
       if (this.isSignUp) {
         await this.authService.signUpWithEmail(this.email, this.password);
       } else {
         await this.authService.signInWithEmail(this.email, this.password);
       }
-      console.log('✅ [submit] Firebase auth SUCCESS');
       this.router.navigate(['/']);
     } catch (err: any) {
-      console.log('❌ [submit] Firebase auth ERROR:', err);
-      console.log('❌ [submit] Error code:', err?.code);
-      console.log('❌ [submit] Error message:', err?.message);
-      
-      this.ngZone.run(() => {
-        const errorMsg = this.getFirebaseErrorMessage(err.code);
-        console.log('❌ [submit] Setting error message (inside ngZone):', errorMsg);
-        this.errorMessage = errorMsg;
-      });
+      this.errorMessage = this.getFirebaseErrorMessage(err.code);
+      this.cdr.detectChanges();
     } finally {
-      console.log('🏁 [submit] FINALLY block executing...');
-      console.log('🏁 [submit] Loading BEFORE setting false:', this.loading);
-      
-      this.ngZone.run(() => {
-        this.loading = false;
-        console.log('🏁 [submit] Loading set to FALSE (inside ngZone). Current loading value:', this.loading);
-      });
-      
-      // Check loading value after ngZone.run
-      setTimeout(() => {
-        console.log('⏰ [submit] Loading value AFTER timeout:', this.loading);
-        console.log('⏰ [submit] Is NgZone stable?', this.ngZone.isStable);
-      }, 100);
+      this.loading = false;
+      this.cdr.detectChanges();
     }
   }
 
   toggleMode() {
-    console.log('🔄 [toggleMode] Switching mode. Was:', this.isSignUp ? 'Sign Up' : 'Sign In');
     this.isSignUp = !this.isSignUp;
     this.errorMessage = '';
   }
 
   async forgotPassword() {
-    console.log('🟢 [forgotPassword] Called. Email:', this.email);
-    
     if (!this.email) {
-      console.log('🟡 [forgotPassword] No email provided');
-      this.ngZone.run(() => {
-        this.errorMessage = 'Please enter your email address first';
-        console.log('🟡 [forgotPassword] Error message set (inside ngZone)');
-      });
+      this.errorMessage = 'Please enter your email address first';
+      this.cdr.detectChanges();
       return;
     }
 
-    this.ngZone.run(() => {
-      this.loading = true;
-      this.errorMessage = '';
-      console.log('🔄 [forgotPassword] Loading set to TRUE (inside ngZone)');
-    });
-
-    console.log('🔍 [forgotPassword] Loading value AFTER ngZone.run:', this.loading);
+    this.loading = true;
+    this.errorMessage = '';
+    this.cdr.detectChanges();
 
     try {
-      console.log('🟢 [forgotPassword] Sending password reset email...');
       await this.authService.sendPasswordResetEmail(this.email);
-      console.log('✅ [forgotPassword] Email sent SUCCESS');
-      
-      this.ngZone.run(() => {
-        this.errorMessage = 'Password reset email sent! Check your inbox.';
-        console.log('✅ [forgotPassword] Success message set (inside ngZone)');
-      });
+      this.errorMessage = 'Password reset email sent! Check your inbox.';
+      this.cdr.detectChanges();
     } catch (err: any) {
-      console.log('❌ [forgotPassword] ERROR:', err);
-      console.log('❌ [forgotPassword] Error code:', err?.code);
-      
-      this.ngZone.run(() => {
-        const errorMsg = this.getFirebaseErrorMessage(err.code);
-        console.log('❌ [forgotPassword] Setting error message (inside ngZone):', errorMsg);
-        this.errorMessage = errorMsg;
-      });
+      this.errorMessage = this.getFirebaseErrorMessage(err.code);
+      this.cdr.detectChanges();
     } finally {
-      console.log('🏁 [forgotPassword] FINALLY block executing...');
-      console.log('🏁 [forgotPassword] Loading BEFORE setting false:', this.loading);
-      
-      this.ngZone.run(() => {
-        this.loading = false;
-        console.log('🏁 [forgotPassword] Loading set to FALSE (inside ngZone). Current loading value:', this.loading);
-      });
-      
-      setTimeout(() => {
-        console.log('⏰ [forgotPassword] Loading value AFTER timeout:', this.loading);
-      }, 100);
+      this.loading = false;
+      this.cdr.detectChanges();
     }
   }
 
   async signInWithGoogle() {
-    console.log('🟢 [signInWithGoogle] Called');
-    
-    this.ngZone.run(() => {
-      this.loading = true;
-      this.errorMessage = '';
-      console.log('🔄 [signInWithGoogle] Loading set to TRUE (inside ngZone)');
-    });
-
-    console.log('🔍 [signInWithGoogle] Loading value AFTER ngZone.run:', this.loading);
+    this.loading = true;
+    this.errorMessage = '';
+    this.cdr.detectChanges();
 
     try {
-      console.log('🟢 [signInWithGoogle] Calling Firebase Google auth...');
       await this.authService.signInWithGoogle();
-      console.log('✅ [signInWithGoogle] Google auth SUCCESS');
       this.router.navigate(['/']);
     } catch (err: any) {
-      console.log('❌ [signInWithGoogle] ERROR:', err);
-      console.log('❌ [signInWithGoogle] Error code:', err?.code);
-      
-      this.ngZone.run(() => {
-        const errorMsg = this.getFirebaseErrorMessage(err.code);
-        console.log('❌ [signInWithGoogle] Setting error message (inside ngZone):', errorMsg);
-        this.errorMessage = errorMsg;
-      });
+      this.errorMessage = this.getFirebaseErrorMessage(err.code);
+      this.cdr.detectChanges();
     } finally {
-      console.log('🏁 [signInWithGoogle] FINALLY block executing...');
-      console.log('🏁 [signInWithGoogle] Loading BEFORE setting false:', this.loading);
-      
-      this.ngZone.run(() => {
-        this.loading = false;
-        console.log('🏁 [signInWithGoogle] Loading set to FALSE (inside ngZone). Current loading value:', this.loading);
-      });
-      
-      setTimeout(() => {
-        console.log('⏰ [signInWithGoogle] Loading value AFTER timeout:', this.loading);
-      }, 100);
+      this.loading = false;
+      this.cdr.detectChanges();
     }
   }
 
   private getFirebaseErrorMessage(code: string): string {
-    console.log('🔍 [getFirebaseErrorMessage] Code received:', code);
-    let message: string;
-    
     switch (code) {
-      case 'auth/invalid-email':
-        message = 'Invalid email address.';
-        break;
-      case 'auth/user-disabled':
-        message = 'This account has been disabled.';
-        break;
-      case 'auth/user-not-found':
-        message = 'No account found with this email.';
-        break;
-      case 'auth/wrong-password':
-        message = 'Incorrect password.';
-        break;
-      case 'auth/email-already-in-use':
-        message = 'Email already registered.';
-        break;
-      case 'auth/weak-password':
-        message = 'Password should be at least 6 characters.';
-        break;
+      case 'auth/invalid-email': return 'Invalid email address.';
+      case 'auth/user-disabled': return 'This account has been disabled.';
+      case 'auth/user-not-found': return 'No account found with this email.';
+      case 'auth/wrong-password': return 'Incorrect password.';
+      case 'auth/email-already-in-use': return 'Email already registered.';
+      case 'auth/weak-password': return 'Password should be at least 6 characters.';
       case 'auth/invalid-credential':
       case 'auth/invalid-login-credentials':
-        message = 'Invalid email or password.';
-        break;
-      default:
-        message = `An error occurred. Please try again. (code: ${code || 'unknown'})`;
-        break;
+        return 'Invalid email or password.';
+      default: return 'An error occurred. Please try again.';
     }
-    
-    console.log('🔍 [getFirebaseErrorMessage] Returning message:', message);
-    return message;
   }
 }
