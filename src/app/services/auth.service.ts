@@ -91,7 +91,6 @@ export class AuthService {
   }
 
   // ----- Existing auth methods (unchanged) -----
-
   async signInWithEmail(email: string, password: string): Promise<User> {
     const result = await signInWithEmailAndPassword(this.auth, email, password);
     return result.user;
