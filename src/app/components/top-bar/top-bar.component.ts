@@ -154,7 +154,6 @@ export class TopBarComponent implements OnInit {
     const user = this.authService.currentUser;
     if (!user) return '';
 
-    // You could also use user.photoURL if available (e.g., from Google)
 
     const name = user.displayName || user.email || 'User';
     const color = stringToColor(name);
