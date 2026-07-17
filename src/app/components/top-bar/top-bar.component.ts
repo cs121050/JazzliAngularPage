@@ -162,19 +162,9 @@ export class TopBarComponent implements OnInit {
     return generateIdenticon(name, color, 200);
   }
 
-    navigateToLogin() {
-      this.router.navigate(['/login']);
-    }
-
-    toggleDropdown(event: Event) {
-      event.stopPropagation();
-      this.dropdownOpen = !this.dropdownOpen;
-    }
-
-    @HostListener('document:click')
-    closeDropdown() {
-      this.dropdownOpen = false;
-    }
+  toggleMobileMenu() {
+    this.navigationService.toggleMobileMenu();
+  }
 
   goToChangePassword() {
     this.dropdownOpen = false;
