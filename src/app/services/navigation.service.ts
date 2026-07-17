@@ -1,7 +1,7 @@
 // navigation.service.ts
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { Observable, map, shareReplay, BehaviorSubject } from 'rxjs';          // ← add BehaviorSubject
+import { Observable, map, shareReplay, BehaviorSubject } from 'rxjs';         
 import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({ providedIn: 'root' })
