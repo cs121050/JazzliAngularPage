@@ -6,7 +6,7 @@ import { NavigationService } from '../../services/navigation.service';
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 import { map } from 'rxjs/operators';
-import { generateIdenticon, stringToColor } from '../../utils/identicon'; // ← Import
+import { generateIdenticon, stringToColor } from '../../utils/identicon';
 
 @Component({
   selector: 'app-top-bar',
@@ -49,14 +49,12 @@ import { generateIdenticon, stringToColor } from '../../utils/identicon'; // ←
                 [class.user-menu-desktop]="(isMobile$ | async) === false" 
                 (click)="toggleDropdown($event)"
               >
-                <!-- ✅ FIXED: Use identicon as fallback -->
                 <img 
                   [src]="getUserAvatar()"
                   alt="User avatar" 
                   class="user-avatar" 
                   [class.user-avatar-mobile]="(isMobile$ | async) === true"
                 >
-                <!-- Use Firebase user for email and photo, but we also display role -->
                 <span class="user-email">
                   {{ (authService.currentUser$ | async)?.email || (authService.currentUser$ | async)?.displayName }}
                 </span>
@@ -68,7 +66,6 @@ import { generateIdenticon, stringToColor } from '../../utils/identicon'; // ←
               <div class="dropdown-menu" [class.dropdown-menu-mobile]="(isMobile$ | async) === true" *ngIf="dropdownOpen">
                 <button class="dropdown-item" (click)="goToUserPanel()">User Panel</button>
                 <button class="dropdown-item" (click)="goToSettings()">Settings</button>  
-                <!-- Admin panel only for admins -->
                 <button *ngIf="(authService.isAdmin$ | async)" class="dropdown-item" (click)="goToAdminPanel()">Admin Panel</button>
                 <button class="dropdown-item" (click)="logout()">Logout</button>
               </div>
@@ -306,8 +303,31 @@ import { generateIdenticon, stringToColor } from '../../utils/identicon'; // ←
     .dropdown-menu {
       min-width: 100%;
     }
+
+    .dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background-color: rgba(128, 128, 128, 0.12);   /* gray */
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+    padding: 4px 0;
+    z-index: 1000;
+    border: 1px solid rgba(128, 128, 128, 0.12);
   }
-`]
+
+  .dropdown-menu-mobile {
+    position: fixed;
+    top: 60px; /* adjust to your top bar height */
+    left: 0;
+    right: 0;
+    width: 100%;
+    border-radius: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background-color: rgba(128, 128, 128, 0.12);   /* gray */
+  }
+  `]
 })
 export class TopBarComponent implements OnInit {
   isMobile$: Observable<boolean>;
@@ -326,29 +346,41 @@ export class TopBarComponent implements OnInit {
     // Any init logic if needed
   }
 
-  /**
-   * Returns the user's avatar URL:
-   * - Uses photoURL from Firebase if available (Google sign-in)
-   * - Falls back to generated identicon (based on email or display name)
-   */
+  navigateToLogin() {
+    this.router.navigate(['/login']);
+  }
+
+  toggleDropdown(event: Event) {
+    event.stopPropagation(); // Prevents the click from bubbling up and closing immediately
+    this.dropdownOpen = !this.dropdownOpen;
+  }
+
+  // Optional: close dropdown when clicking outside
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event) {
+    if (this.dropdownOpen && !this.elementRef.nativeElement.contains(event.target)) {
+      this.dropdownOpen = false;
+    }
+  }
+
+  // -------- Existing methods --------
+
   getUserAvatar(): string {
     const user = this.authService.currentUser;
     if (!user) return '';
 
-    // If user has a real photo (from Google), use it
-    if (user.displayName) {
-      // Note: Firebase User object has photoURL directly, 
-      // but your AppUser interface may not include it.
-      // You can access it via this.authService.auth.currentUser?.photoURL
-    }
+    // You could also use user.photoURL if available (e.g., from Google)
+    // if (user.photoURL) return user.photoURL;
 
-    // Generate identicon as fallback
     const name = user.displayName || user.email || 'User';
     const color = stringToColor(name);
     return generateIdenticon(name, color, 200);
   }
 
-  // ... rest of your methods
+  toggleMobileMenu() {
+    this.navigationService.toggleMobileMenu();
+  }
+
   goToChangePassword() {
     this.dropdownOpen = false;
     this.router.navigate(['/change-password']);
