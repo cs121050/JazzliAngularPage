@@ -280,25 +280,29 @@ import { generateIdenticon, stringToColor } from '../../utils/identicon';
       background: rgba(255,255,255,0.15);
     }
 
-    /* ── Mobile adjustments ── */
-    @media (max-width: 768px) {
-      .top-bar {
-        padding: 0 1rem;
-      }
+    .dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background-color: rgba(128, 128, 128, 0.12);   /* gray */
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+    padding: 4px 0;
+    z-index: 1000;
+    border: 1px solid rgba(128, 128, 128, 0.12);
+  }
 
-      .user-email {
-        max-width: 100px;
-        font-size: 0.8rem;
-      }
-
-      .user-menu {
-        padding: 0.2rem 0.5rem 0.2rem 0.2rem;
-      }
-
-      .dropdown-menu {
-        min-width: 100%;
-      }
-    }   /* ✅ This closing brace was missing — now fixed */
+  .dropdown-menu-mobile {
+    position: fixed;
+    top: 60px; /* adjust to your top bar height */
+    left: 0;
+    right: 0;
+    width: 100%;
+    border-radius: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background-color: rgba(128, 128, 128, 0.12);   /* gray */
+  }
   `]
 })
 export class TopBarComponent implements OnInit {
@@ -316,38 +320,39 @@ export class TopBarComponent implements OnInit {
 
   ngOnInit() { }
 
-  /**
-   * Returns the user's avatar URL:
-   * - Uses photoURL from Firebase if available (Google sign-in)
-   * - Falls back to generated identicon (based on email or display name)
-   */
+  navigateToLogin() {
+    this.router.navigate(['/login']);
+  }
+
+  toggleDropdown(event: Event) {
+    event.stopPropagation(); // Prevents the click from bubbling up and closing immediately
+    this.dropdownOpen = !this.dropdownOpen;
+  }
+
+  // Optional: close dropdown when clicking outside
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event) {
+    if (this.dropdownOpen && !this.elementRef.nativeElement.contains(event.target)) {
+      this.dropdownOpen = false;
+    }
+  }
+
+  // -------- Existing methods --------
+
   getUserAvatar(): string {
     const user = this.authService.currentUser;
     if (!user) return '';
 
-    // If you want to use photoURL from Firebase, uncomment:
-    // const firebaseUser = this.authService.auth.currentUser;
-    // if (firebaseUser?.photoURL) return firebaseUser.photoURL;
+    // You could also use user.photoURL if available (e.g., from Google)
+    // if (user.photoURL) return user.photoURL;
 
     const name = user.displayName || user.email || 'User';
     const color = stringToColor(name);
     return generateIdenticon(name, color, 200);
   }
 
-  // ─── Navigation methods ───────────────────────────────────────────
-  navigateToLogin() {
-    this.router.navigate(['/login']);
-  }
-
-  toggleDropdown(event: Event) {
-    event.stopPropagation();
-    this.dropdownOpen = !this.dropdownOpen;
-  }
-
   toggleMobileMenu() {
-    // Implement your mobile menu toggle (e.g., emit event, open sidebar)
-    console.log('Mobile menu toggled');
-    // Example: if you have a service, call it.
+    this.navigationService.toggleMobileMenu();
   }
 
   goToChangePassword() {
