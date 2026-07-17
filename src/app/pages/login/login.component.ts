@@ -1,11 +1,10 @@
 // login.component.ts
-import { Component, inject } from '@angular/core';
+import { Component, inject, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LayoutComponent } from '../../components/layout/layout.component';
 import { AuthService } from '../../services/auth.service';
-import { NgZone } from '@angular/core';
 import { generateIdenticon, stringToColor } from '../../utils/identicon';
 
 @Component({
@@ -83,7 +82,7 @@ import { generateIdenticon, stringToColor } from '../../utils/identicon';
             <div *ngIf="loading" class="spinner"></div>
           </button>
 
-          <!-- Toggle between Sign In and Sign Up - using *ngIf to avoid interpolation issues -->
+          <!-- Toggle between Sign In and Sign Up -->
           <button
             class="toggle-mode"
             (click)="toggleMode()"
@@ -348,39 +347,38 @@ export class LoginComponent {
   passwordVisible = false;
 
   generateUserIdenticon(name: string): string {
-    const color = stringToColor(name); // Auto-generate color from name
+    const color = stringToColor(name);
     return generateIdenticon(name, color, 200);
   }
 
   async submit() {
-  if (!this.email || !this.password) {
-    this.ngZone.run(() => {
-      this.errorMessage = 'Please enter email and password';
-    });
-    return;
-  }
-
-  this.ngZone.run(() => {
-    this.loading = true;
-    this.errorMessage = '';
-  });
-
-  try {
-    if (this.isSignUp) {
-      await this.authService.signUpWithEmail(this.email, this.password);
-    } else {
-      await this.authService.signInWithEmail(this.email, this.password);
+    if (!this.email || !this.password) {
+      this.ngZone.run(() => {
+        this.errorMessage = 'Please enter email and password';
+      });
+      return;
     }
-    // success – no UI update needed here (router navigation triggers its own change detection)
-    this.router.navigate(['/']);
-  } catch (err: any) {
+
     this.ngZone.run(() => {
-      this.errorMessage = this.getFirebaseErrorMessage(err.code);
+      this.loading = true;
+      this.errorMessage = '';
     });
-  } finally {
-    this.ngZone.run(() => {
-      this.loading = false;
-    });
+
+    try {
+      if (this.isSignUp) {
+        await this.authService.signUpWithEmail(this.email, this.password);
+      } else {
+        await this.authService.signInWithEmail(this.email, this.password);
+      }
+      this.router.navigate(['/']);
+    } catch (err: any) {
+      this.ngZone.run(() => {
+        this.errorMessage = this.getFirebaseErrorMessage(err.code);
+      });
+    } finally {
+      this.ngZone.run(() => {
+        this.loading = false;
+      });
     }
   }
 
@@ -391,31 +389,50 @@ export class LoginComponent {
 
   async forgotPassword() {
     if (!this.email) {
-      this.errorMessage = 'Please enter your email address first';
+      this.ngZone.run(() => {
+        this.errorMessage = 'Please enter your email address first';
+      });
       return;
     }
-    this.loading = true;
-    this.errorMessage = '';
+
+    this.ngZone.run(() => {
+      this.loading = true;
+      this.errorMessage = '';
+    });
+
     try {
       await this.authService.sendPasswordResetEmail(this.email);
-      this.errorMessage = 'Password reset email sent! Check your inbox.';
+      this.ngZone.run(() => {
+        this.errorMessage = 'Password reset email sent! Check your inbox.';
+      });
     } catch (err: any) {
-      this.errorMessage = this.getFirebaseErrorMessage(err.code);
+      this.ngZone.run(() => {
+        this.errorMessage = this.getFirebaseErrorMessage(err.code);
+      });
     } finally {
-      this.loading = false;
+      this.ngZone.run(() => {
+        this.loading = false;
+      });
     }
   }
 
   async signInWithGoogle() {
-    this.loading = true;
-    this.errorMessage = '';
+    this.ngZone.run(() => {
+      this.loading = true;
+      this.errorMessage = '';
+    });
+
     try {
       await this.authService.signInWithGoogle();
       this.router.navigate(['/']);
     } catch (err: any) {
-      this.errorMessage = this.getFirebaseErrorMessage(err.code);
+      this.ngZone.run(() => {
+        this.errorMessage = this.getFirebaseErrorMessage(err.code);
+      });
     } finally {
-      this.loading = false;
+      this.ngZone.run(() => {
+        this.loading = false;
+      });
     }
   }
 
@@ -427,6 +444,9 @@ export class LoginComponent {
       case 'auth/wrong-password': return 'Incorrect password.';
       case 'auth/email-already-in-use': return 'Email already registered.';
       case 'auth/weak-password': return 'Password should be at least 6 characters.';
+      case 'auth/invalid-credential':
+      case 'auth/invalid-login-credentials':
+        return 'Invalid email or password.';
       default: return 'An error occurred. Please try again.';
     }
   }
